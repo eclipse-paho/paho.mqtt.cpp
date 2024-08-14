@@ -93,7 +93,7 @@ This requires the CMake option `PAHO_WITH_MQTT_C` set.
 ```
 $ git clone https://github.com/eclipse/paho.mqtt.cpp
 $ cd paho.mqtt.cpp
-$ git co v1.4.0
+$ git checkout v1.4.1
 
 $ git submodule init
 $ git submodule update
@@ -169,7 +169,7 @@ If the Paho C library is not already installed, the recommended version can be b
 ```
 $ git clone https://github.com/eclipse/paho.mqtt.cpp
 $ cd paho.mqtt.cpp
-$ git co v1.4.0
+$ git checkout v1.4.1
 $ git submodule init
 $ git submodule update
 
