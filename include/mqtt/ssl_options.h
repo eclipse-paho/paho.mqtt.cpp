@@ -105,6 +105,10 @@ private:
     /** ALPN protocol list, in wire format */
     std::basic_string<unsigned char> protos_;
 
+	/** OpenSSL provider name to be used if enabled. */
+	string providerName_;
+
+
     /** Callbacks from the C library */
     static int on_error(const char* str, size_t len, void* context);
     static unsigned on_psk(
@@ -150,12 +154,14 @@ public:
      * @param enableServerCertAuth True/False option to enable verification of
      * the server certificate
      * @param alpnProtos The ALPN protocols to try.
+     * @param providerName Name of the OpenSSL provider to use.
      */
     ssl_options(
         const string& trustStore, const string& keyStore, const string& privateKey,
         const string& privateKeyPassword, const string& enabledCipherSuites,
         bool enableServerCertAuth,
-        const std::vector<string> alpnProtos = std::vector<string>()
+        const std::vector<string> alpnProtos = std::vector<string>(),
+        const string& providerName = ""
     );
     /**
      * Argument constructor.
@@ -174,12 +180,14 @@ public:
      * @param enableServerCertAuth True/False option to enable verification
      *  						   of the server certificate
      * @param alpnProtos The ALPN protocols to try.
+     * @param providerName Name of the OpenSSL provider to use.
      */
     ssl_options(
         const string& trustStore, const string& keyStore, const string& privateKey,
         const string& privateKeyPassword, const string& caPath,
         const string& enabledCipherSuites, bool enableServerCertAuth,
-        const std::vector<string> alpnProtos = std::vector<string>()
+        const std::vector<string> alpnProtos = std::vector<string>(),
+        const string& providerName = ""
     );
     /**
      * Copy constructor.
@@ -360,6 +368,16 @@ public:
      * @param protos The list of ALPN protocols to be negotiated.
      */
     void set_alpn_protos(const std::vector<string>& protos);
+    /*
+	 * Returns current provider name which is in use.
+	 * @return string containing provider name.
+	 */
+	string get_provider_name() const { return providerName_; }
+ 	/**
+	 * Sets the provider name to be used.
+	 * @param name provider name to use
+	 */
+	void set_provider_name(const string& name);
 };
 
 /**
@@ -507,6 +525,14 @@ public:
         opts_.set_alpn_protos(protos);
         return *this;
     }
+	/**
+	 * Sets the provider name
+	 * @param name provider name
+	 */
+	auto provider_name(const string& name) -> self& {
+		opts_.set_provider_name(name);
+		return *this;
+	}
     /**
      * Finish building the options and return them.
      * @return The option struct as built.
