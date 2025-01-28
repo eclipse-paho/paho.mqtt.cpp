@@ -10,7 +10,7 @@
 # All rights reserved. This program and the accompanying materials
 # are made available under the terms of the Eclipse Public License v2.0
 # and Eclipse Distribution License v1.0 which accompany this distribution.
-# 
+#
 # The Eclipse Public License is available at
 #   http://www.eclipse.org/legal/epl-v20.html
 # and the Eclipse Distribution License is available at
@@ -34,7 +34,7 @@ export(EXPORT ${package_name}
 )
 
 install(EXPORT ${package_name}
-  DESTINATION lib/cmake/${package_name}
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${package_name}
   FILE ${package_name}Targets.cmake
   NAMESPACE ${package_name}::
 )
@@ -42,5 +42,5 @@ install(EXPORT ${package_name}
 install(FILES
   "${CMAKE_CURRENT_BINARY_DIR}/${package_name}Config.cmake"
   "${CMAKE_CURRENT_BINARY_DIR}/${package_name}ConfigVersion.cmake"
-  DESTINATION lib/cmake/${package_name}
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${package_name}
 )
