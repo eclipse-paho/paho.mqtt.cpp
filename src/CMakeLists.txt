@@ -135,7 +135,7 @@ include(GNUInstallDirs)
 
 foreach(TARGET ${PAHO_CPP_TARGETS})
     set_target_properties(${TARGET} PROPERTIES
-        CXX_STANDARD 17
+        CXX_STANDARD ${PAHO_CXX_STANDARD}
         CXX_STANDARD_REQUIRED ON
         CXX_EXTENSIONS OFF
     )

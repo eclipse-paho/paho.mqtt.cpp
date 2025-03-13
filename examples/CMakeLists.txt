@@ -62,7 +62,7 @@ foreach(EXECUTABLE ${EXECUTABLES} ${SSL_EXECUTABLES})
     target_link_libraries(${EXECUTABLE} PahoMqttCpp::paho-mqttpp3)
 
     set_target_properties(${EXECUTABLE} PROPERTIES
-        CXX_STANDARD 17
+        CXX_STANDARD ${PAHO_CXX_STANDARD}
         CXX_STANDARD_REQUIRED ON
         CXX_EXTENSIONS OFF
     )

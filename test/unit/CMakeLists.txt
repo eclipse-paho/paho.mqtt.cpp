@@ -59,7 +59,7 @@ if(PAHO_WITH_SSL)
 endif()
 
 set_target_properties(unit_tests PROPERTIES
-    CXX_STANDARD 17
+    CXX_STANDARD ${PAHO_CXX_STANDARD}
     CXX_STANDARD_REQUIRED ON
     CXX_EXTENSIONS OFF
 )

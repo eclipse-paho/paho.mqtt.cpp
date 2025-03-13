@@ -45,8 +45,16 @@ option(PAHO_BUILD_TESTS "Build tests (requires Catch2)" FALSE)
 option(PAHO_BUILD_DOCUMENTATION "Create and install the API documentation (requires Doxygen)" FALSE)
 option(PAHO_WITH_MQTT_C "Build Paho C from the internal GIT submodule." FALSE)
 
+set(PAHO_CXX_STANDARD 17 CACHE STRING "The C++ standard for the project (17, min)")
+
 if(NOT PAHO_BUILD_SHARED AND NOT PAHO_BUILD_STATIC)
     message(FATAL_ERROR "You must set either PAHO_BUILD_SHARED, PAHO_BUILD_STATIC, or both")
+endif()
+
+if(PAHO_CXX_STANDARD LESS 17)
+    message(FATAL_ERROR "Build requires C++17 or later.")
+else()
+    message(STATUS "C++ standard: C++${PAHO_CXX_STANDARD}")
 endif()
 
 # --- Setting naming variables ---
