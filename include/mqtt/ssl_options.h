@@ -103,7 +103,7 @@ private:
     psk_handler pskHandler_;
 
     /** ALPN protocol list, in wire format */
-    std::basic_string<unsigned char> protos_;
+    std::vector<unsigned char> protos_;
 
     /** Callbacks from the C library */
     static int on_error(const char* str, size_t len, void* context);
