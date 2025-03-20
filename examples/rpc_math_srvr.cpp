@@ -93,7 +93,7 @@ int main(int argc, char* argv[])
     mqtt::create_options createOpts(MQTTVERSION_5);
     mqtt::client cli(SERVER_ADDRESS, CLIENT_ID, createOpts);
 
-    auto connOpts = mqtt::connect_options_builder()
+    auto connOpts = mqtt::connect_options_builder::v5()
                         .keep_alive_interval(seconds(20))
                         .clean_start()
                         .finalize();
