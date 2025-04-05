@@ -1,6 +1,6 @@
 /*******************************************************************************
  * Copyright (c) 2016 Guilherme Ferreira <guilherme.maciel.ferreira@gmail.com>
- * Copyright (c) 2016-2021 Frank Pagliughi <fpagliughi@mindspring.com>
+ * Copyright (c) 2016-2025 Frank Pagliughi <fpagliughi@mindspring.com>
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v2.0
@@ -335,7 +335,7 @@ void ssl_options::set_alpn_protos(const std::vector<string>& protos)
         opts_.protos_len = unsigned(protos_.size());
     }
     else {
-        protos_ = std::vector<uchar>();
+        protos_.clear();
         opts_.protos = nullptr;
         opts_.protos_len = 0;
     }
