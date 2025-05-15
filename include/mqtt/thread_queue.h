@@ -93,7 +93,7 @@ public:
     using size_type = typename Container::size_type;
 
     /** The maximum capacity of the queue. */
-    static constexpr size_type MAX_CAPACITY = std::numeric_limits<size_type>::max();
+    static constexpr size_type MAX_CAPACITY = (std::numeric_limits<size_type>::max)();
 
 private:
     /** Object lock */
