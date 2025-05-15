@@ -149,7 +149,7 @@ int main(int argc, char* argv[])
     auto connOpts = mqtt::connect_options_builder()
                         .connect_timeout(5s)
                         .clean_session()
-                        .will(mqtt::message(TOPIC, LWT_PAYLOAD, QOS, false))
+                        .will(mqtt::message(TOPIC, LWT_PAYLOAD, strlen(LWT_PAYLOAD), QOS, false))
                         .finalize();
 
     cout << "  ...OK" << endl;
