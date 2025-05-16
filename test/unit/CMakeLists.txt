@@ -57,15 +57,22 @@ if(PAHO_WITH_SSL)
     )
 endif()
 
+set_target_properties(unit_tests PROPERTIES
+    CXX_STANDARD 11
+    CXX_STANDARD_REQUIRED ON
+    CXX_EXTENSIONS OFF
+)
+
 if (Catch2_VERSION VERSION_LESS "3.0")
     target_compile_definitions(unit_tests PUBLIC CATCH2_V2)
 endif()
 
 # --- Link for executables ---
 
-message(STATUS "Using library for unit tests: ${PAHO_CPP_LIB}")
-
-target_link_libraries(unit_tests ${PAHO_CPP_LIB} Catch2::Catch2)
+target_link_libraries(unit_tests
+    Catch2::Catch2
+    PahoMqttCpp::paho-mqttpp3
+)
 
 if(PAHO_BUILD_SHARED)
     target_compile_definitions(unit_tests PUBLIC PAHO_MQTTPP_IMPORTS)

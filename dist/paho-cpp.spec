@@ -1,6 +1,6 @@
 Summary:            MQTT CPP Client
 Name:               paho-cpp
-Version:            1.0.0
+Version:            1.4.2
 Release:            0%{?dist}
 License:            Eclipse Distribution License 1.0 and Eclipse Public License 1.0
 Group:              Development/Tools

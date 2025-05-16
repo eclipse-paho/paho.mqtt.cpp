@@ -7,7 +7,7 @@
 
 #*******************************************************************************
 # Copyright (c) 2016-2017, Guilherme Maciel Ferreira
-# Copyright (c) 2017-2023, Frank Pagliughi
+# Copyright (c) 2017-2024, Frank Pagliughi
 #
 #  All rights reserved. This program and the accompanying materials
 #  are made available under the terms of the Eclipse Public License v2.0
@@ -28,6 +28,8 @@
 set (THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
+include(GenerateExportHeader)
+
 ## --- Use object library to optimize compilation ---
 
 set(COMMON_SRC
@@ -42,7 +44,6 @@ set(COMMON_SRC
     response_options.cpp
     ssl_options.cpp
     string_collection.cpp
-    subscribe_options.cpp
     token.cpp
     topic.cpp
     will_options.cpp
@@ -51,39 +52,68 @@ set(COMMON_SRC
 ## --- Build the shared library, if requested ---
 
 if(PAHO_BUILD_SHARED)
-    ## Create the shared library
-    add_library(paho-mqttpp3 SHARED ${COMMON_SRC})
-    list(APPEND PAHO_CPP_TARGETS paho-mqttpp3)
+    message(STATUS "Creating shared library")
 
-    target_compile_definitions(paho-mqttpp3 PRIVATE PAHO_MQTTPP_EXPORTS)
+    ## Create the shared library
+    add_library(paho-mqttpp3-shared SHARED ${COMMON_SRC})
+    list(APPEND PAHO_CPP_TARGETS paho-mqttpp3-shared)
+
+    ## Alias for subdirectory builds
+    add_library(PahoMqttCpp::paho-mqttpp3-shared ALIAS paho-mqttpp3-shared)
+    add_library(PahoMqttCpp::paho-mqttpp3 ALIAS paho-mqttpp3-shared)
+
+    target_compile_definitions(paho-mqttpp3-shared PRIVATE PAHO_MQTTPP_EXPORTS)
 
     ## Add dependencies to the shared library
-    target_link_libraries(paho-mqttpp3 PUBLIC
-        eclipse-paho-mqtt-c::${PAHO_MQTT_C_LIB}
+    target_link_libraries(paho-mqttpp3-shared PUBLIC
+        ${PAHO_MQTT_C_LIB}
         Threads::Threads
         ${LIBS_SYSTEM}
     )
 
     ## set the shared library soname
-    set_target_properties(paho-mqttpp3 PROPERTIES
+    set_target_properties(paho-mqttpp3-shared PROPERTIES
+        OUTPUT_NAME paho-mqttpp3
         VERSION ${PROJECT_VERSION}
         SOVERSION ${PROJECT_VERSION_MAJOR}
+    )
+
+    generate_export_header(paho-mqttpp3-shared
+        BASE_NAME paho_mqttpp
+        EXPORT_FILE_NAME ${PAHO_MQTTPP_GENERATED_DIR}/include/mqtt/export.h
     )
 endif()
 
 ## --- Build static version of the library, if requested ---
 
 if(PAHO_BUILD_STATIC)
-    ## create the static library
+    ## Create the static library
     add_library(paho-mqttpp3-static STATIC ${COMMON_SRC})
     list(APPEND PAHO_CPP_TARGETS paho-mqttpp3-static)
 
-    ## add dependencies to the shared library
+    ## Alias for subdirectory builds
+    add_library(PahoMqttCpp::paho-mqttpp3-static ALIAS paho-mqttpp3-static)
+
+    ## Add dependencies to the static library
     target_link_libraries(paho-mqttpp3-static PUBLIC 
-        eclipse-paho-mqtt-c::${PAHO_MQTT_C_LIB}-static
+        ${PAHO_MQTT_C_LIB}-static
         Threads::Threads
         ${LIBS_SYSTEM}
     )
+
+    if(${PAHO_BUILD_SHARED})
+        # This lib should configure for static exports
+        target_compile_definitions(paho-mqttpp3-static PRIVATE PAHO_MQTTPP_STATIC)
+        target_compile_definitions(paho-mqttpp3-static PRIVATE PAHO_MQTTPP_STATIC_DEFINE)
+    else()
+        # If no shared lib, make this one the default target
+        add_library(PahoMqttCpp::paho-mqttpp3 ALIAS paho-mqttpp3-static)
+
+        generate_export_header(paho-mqttpp3-static
+            BASE_NAME paho_mqttpp
+            EXPORT_FILE_NAME ${PAHO_MQTTPP_GENERATED_DIR}/include/mqtt/export.h
+        )
+    endif()
 
     ## Let the archive use the same base name as the shared lib on *nix systems
     if(UNIX)
@@ -91,27 +121,39 @@ if(PAHO_BUILD_STATIC)
     endif()
 endif()
 
+## --- Make sure at least one target was specified ---
+
+if(NOT PAHO_CPP_TARGETS)
+    message(FATAL_ERROR "No build targets are specified")
+endif()
+
 ## --- Set common properties, etc ---
 
 include(GNUInstallDirs)
 
 foreach(TARGET ${PAHO_CPP_TARGETS})
-  ## Build warnings
-  target_compile_options(${TARGET} PRIVATE
-    $<$<CXX_COMPILER_ID:MSVC>:/W3>
-    $<$<CXX_COMPILER_ID:Clang>:-Wall -Wextra -Wdocumentation>
-    $<$<NOT:$<OR:$<CXX_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:Clang>>>:-Wall -Wextra>
-  )
+    set_target_properties(${TARGET} PROPERTIES
+        CXX_STANDARD 11
+        CXX_STANDARD_REQUIRED ON
+        CXX_EXTENSIONS OFF
+    )
 
-  target_include_directories(${TARGET} PUBLIC
-      $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
-      $<INSTALL_INTERFACE:include>
-  )
+    ## Build warnings
+    target_compile_options(${TARGET} PRIVATE
+        $<$<CXX_COMPILER_ID:MSVC>:/W3>
+        $<$<CXX_COMPILER_ID:Clang>:-Wall -Wextra -Wdocumentation>
+        $<$<NOT:$<OR:$<CXX_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:Clang>>>:-Wall -Wextra>
+    )
 
-  ## install the shared library
-  install(TARGETS ${TARGET} EXPORT PahoMqttCpp
-      ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-      LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-      RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-  )
+    target_include_directories(${TARGET} PUBLIC
+        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+    )
+
+    ## install the shared library
+    install(TARGETS ${TARGET} EXPORT PahoMqttCpp
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    )
 endforeach()

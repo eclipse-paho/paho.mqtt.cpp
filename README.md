@@ -47,6 +47,7 @@ The v1.4 releases were primarily concerned with reorganizing the sources and fix
 - Fixed and optimized 'topic_matcher' trie collection
 - Added some missing Eclipse/Paho legal documents to the repo.
 - Several bug fixes.
+- (v1.4.2) Updated the CMake for better bundled build of Paho C, bumping that dependency to v1.3.14.
 
 For a full list of updates see the [CHANGELOG](https://github.com/eclipse/paho.mqtt.cpp/blob/master/CHANGELOG.md)
 
@@ -93,7 +94,7 @@ This requires the CMake option `PAHO_WITH_MQTT_C` set.
 ```
 $ git clone https://github.com/eclipse/paho.mqtt.cpp
 $ cd paho.mqtt.cpp
-$ git co v1.4.1
+$ git co v1.4.2
 
 $ git submodule init
 $ git submodule update
@@ -169,7 +170,7 @@ If the Paho C library is not already installed, the recommended version can be b
 ```
 $ git clone https://github.com/eclipse/paho.mqtt.cpp
 $ cd paho.mqtt.cpp
-$ git co v1.4.1
+$ git co v1.4.2
 $ git submodule init
 $ git submodule update
 

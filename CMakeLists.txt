@@ -5,8 +5,8 @@
 #*******************************************************************************
 # This is part of the Paho MQTT C++ client library.
 #
+# Copyright (c) 2017-2025, Frank Pagliughi
 # Copyright (c) 2016-2017, Guilherme Maciel Ferreira
-# Copyright (c) 2017-2023, Frank Pagliughi
 #
 # All rights reserved. This program and the accompanying materials
 # are made available under the terms of the Eclipse Public License v2.0
@@ -22,9 +22,9 @@
 #   Frank Pagliughi
 #*******************************************************************************/
 
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.13)
 
-project(PahoMqttCpp VERSION "1.4.1")
+project(PahoMqttCpp VERSION "1.4.2")
 
 ## --- Build options ---
 
@@ -49,13 +49,17 @@ if(NOT PAHO_BUILD_SHARED AND NOT PAHO_BUILD_STATIC)
     message(FATAL_ERROR "You must set either PAHO_BUILD_SHARED, PAHO_BUILD_STATIC, or both")
 endif()
 
+# --- Setting naming variables ---
+
+set(PAHO_MQTTPP_GENERATED_DIR ${CMAKE_CURRENT_BINARY_DIR}/generated)
+
 ## --- Find Paho C or build it, if reqested ---
 
 if(PAHO_WITH_SSL)
     find_package(OpenSSL REQUIRED)
-    set(PAHO_MQTT_C_LIB paho-mqtt3as)
+    set(PAHO_MQTT_C_LIB eclipse-paho-mqtt-c::paho-mqtt3as)
 else()
-    set(PAHO_MQTT_C_LIB paho-mqtt3a)
+    set(PAHO_MQTT_C_LIB eclipse-paho-mqtt-c::paho-mqtt3a)
 endif()
 
 if(PAHO_WITH_MQTT_C)
@@ -64,9 +68,10 @@ if(PAHO_WITH_MQTT_C)
     ## Build the Paho C library from the submodule
     set(PAHO_ENABLE_TESTING FALSE CACHE BOOL "No Paho C tests")
     set(PAHO_HIGH_PERFORMANCE TRUE CACHE BOOL "Paho C high performance")
-
-    # TODO: Remove this when the next Paho C update is released.
-    set(CMAKE_POLICY_DEFAULT_CMP0048 NEW)
+    if(NOT WIN32)
+        set(PAHO_WITH_UNIX_SOCKETS TRUE CACHE BOOL "Support for Unix-domain sockets")
+    endif()
+    set(CMAKE_C_STANDARD 99 CACHE STRING "Paho C language standard")
 
     add_subdirectory(${PROJECT_SOURCE_DIR}/externals/paho-mqtt-c)
 
@@ -100,15 +105,6 @@ else()
     find_package(eclipse-paho-mqtt-c REQUIRED)
 endif()
 
-## --- C++11 build flags ---
-
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-
-# Generate position-independent code (-fPIC on UNIX)
-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-
 # --- System Details ---
 
 include(GNUInstallDirs)
@@ -118,8 +114,6 @@ if(WIN32)
     set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
     set(LIBS_SYSTEM ws2_32)
 endif()
-
-## --- Build directories ---
 
 # --- The headers ---
 
@@ -135,14 +129,6 @@ if(PAHO_BUILD_DOCUMENTATION)
     add_subdirectory(doc)
 endif()
 
-# --- Default library for samples and unit tests ---
-
-if(PAHO_BUILD_SHARED)
-    set(PAHO_CPP_LIB paho-mqttpp3)
-else()
-    set(PAHO_CPP_LIB paho-mqttpp3-static)
-endif()
-
 # --- Example Apps ---
 
 if(PAHO_BUILD_SAMPLES OR PAHO_BUILD_EXAMPLES)
@@ -152,8 +138,18 @@ endif()
 # --- Unit Tests ---
 
 if(PAHO_BUILD_TESTS)
+    enable_testing()
     add_subdirectory(test/unit)
 endif()
+
+## --- Install generated header(s) ---
+
+install(
+    DIRECTORY
+        ${PAHO_MQTTPP_GENERATED_DIR}/include/
+    DESTINATION
+        ${CMAKE_INSTALL_INCLUDEDIR}
+)
 
 ## --- Packaging settings ---
 
@@ -169,6 +165,8 @@ elseif(UNIX)
 endif()
 
 include(CPack)
+
+# --- Export CMake TARGETS ---
 
 add_subdirectory(cmake)
 

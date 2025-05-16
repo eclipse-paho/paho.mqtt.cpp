@@ -1,6 +1,6 @@
 # CMakeLists.txt
 #
-# CMake file for the Paho C++ sample applications.
+# CMake file for the Paho C++ example applications.
 #
 #*******************************************************************************
 # This is part of the Paho MQTT C++ client library.
@@ -21,8 +21,6 @@
 #   Frank Pagliughi - Updates for new samples
 #*******************************************************************************/
 
-## Note: on OS X you should install XCode and the associated command-line tools
-
 ## --- Library dependencies ---
 
 set (THREADS_PREFER_PTHREAD_FLAG ON)
@@ -35,52 +33,54 @@ set(EXECUTABLES
     async_subscribe
     async_consume
     async_consume_v5
+    async_message_consume
+    async_message_consume_v5
+    data_publish
+    mqttpp_chat
+    multithr_pub_sub
+    pub_speed_test
+    rpc_math_cli
+    rpc_math_srvr
     sync_publish
     sync_consume
     sync_consume_v5
     sync_reconnect
-    data_publish
-    rpc_math_cli
-    rpc_math_srvr
-    mqttpp_chat
     topic_publish
-    multithr_pub_sub
     ws_publish
-    pub_speed_test
 )
 
 # These will only be built if SSL selected
-set(SSL_EXECUTABLES
-    ssl_publish
-)
+if(PAHO_WITH_SSL)
+    set(SSL_EXECUTABLES ssl_publish)
+endif()
 
-## Build the samples
-foreach(EXECUTABLE ${EXECUTABLES})
+## Build the example apps
+foreach(EXECUTABLE ${EXECUTABLES} ${SSL_EXECUTABLES})
     add_executable(${EXECUTABLE} ${EXECUTABLE}.cpp)
-    target_link_libraries(${EXECUTABLE} ${PAHO_CPP_LIB})
+    target_link_libraries(${EXECUTABLE} PahoMqttCpp::paho-mqttpp3)
+
+    set_target_properties(${EXECUTABLE} PROPERTIES
+        CXX_STANDARD 11
+        CXX_STANDARD_REQUIRED ON
+        CXX_EXTENSIONS OFF
+    )
+
     if(PAHO_BUILD_SHARED)
         target_compile_definitions(${EXECUTABLE} PRIVATE PAHO_MQTTPP_IMPORTS)
     endif()
 endforeach()
 
+## Extra configuration for the SSL/TLS examples, if selected
+foreach(EXECUTABLE ${SSL_EXECUTABLES})
+    target_compile_definitions(${EXECUTABLE} PUBLIC OPENSSL)
+endforeach()
+
 ## install binaries
-install(TARGETS ${EXECUTABLES} EXPORT PahoMqttCppSamples
-    RUNTIME DESTINATION bin
+include(GNUInstallDirs)
+
+install(TARGETS ${EXECUTABLES} ${SSL_EXECUTABLES}
+    EXPORT PahoMqttCppSamples
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
-## Build the SSL/TLS samples, if selected
-if(PAHO_WITH_SSL)
-    foreach(EXECUTABLE ${SSL_EXECUTABLES})
-        add_executable(${EXECUTABLE} ${EXECUTABLE}.cpp)
-        target_link_libraries(${EXECUTABLE} ${PAHO_CPP_LIB})
-        if(PAHO_BUILD_SHARED)
-            target_compile_definitions(${EXECUTABLE} PRIVATE PAHO_MQTTPP_IMPORTS)
-        endif()
-        target_compile_definitions(${EXECUTABLE} PUBLIC OPENSSL)
-    endforeach()
-
-    install(TARGETS ${SSL_EXECUTABLES} EXPORT PahoMqttCppSamples
-        RUNTIME DESTINATION bin
-    )
-endif()
 
