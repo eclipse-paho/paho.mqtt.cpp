@@ -84,7 +84,7 @@ int main(int argc, char* argv[])
 {
     auto serverURI = (argc > 1) ? std::string{argv[1]} : DFLT_SERVER_URI;
 
-    mqtt::client cli(serverURI, CLIENT_ID, mqtt::create_options(MQTTVERSION_5));
+    mqtt::client cli(serverURI, CLIENT_ID);
 
     auto connOpts = mqtt::connect_options_builder::v5()
                         .automatic_reconnect(seconds(2), seconds(30))
