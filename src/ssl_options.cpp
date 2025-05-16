@@ -332,7 +332,7 @@ void ssl_options::set_alpn_protos(const std::vector<string>& protos)
         protos_ = std::move(protoBin);
 
         opts_.protos = protos_.data();
-        opts_.protos_len = unsigned(protos_.size());
+        opts_.protos_len = static_cast<unsigned>(protos_.size());
     }
     else {
         protos_.clear();
