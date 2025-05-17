@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Version 1.4.2](https://github.com/eclipse/paho.mqtt.cpp/compare/v1.4.1..v1.4.2) - (2025-05-19)
 
 - Back-ported the CMake build from v1.5, but reset the `CXX_STANDARD` back to C++11
+- Bumped the bundled Paho C submodule to v1.3.14
 - Added a few examples from the v1.5 branch.
 
 
