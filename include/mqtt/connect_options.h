@@ -672,7 +672,7 @@ public:
     /**
      * Move constructor from an existing set of options.
      */
-    explicit connect_options_builder(const connect_options&& opts) : opts_(std::move(opts)) {}
+    explicit connect_options_builder(connect_options&& opts) : opts_(std::move(opts)) {}
     /**
      * Creates the default options builder for an MQTT v3.x connection.
      * @return An options builder for an MQTT v3.x connection.
