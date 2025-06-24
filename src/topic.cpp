@@ -109,6 +109,11 @@ bool topic_filter::matches(const string& topic) const
 {
     auto n = fields_.size();
 
+    // Edge case of topic_filter("")
+    if (n == 0) {
+        return false;
+    }
+
     auto topic_fields = topic::split(topic);
     auto nt = topic_fields.size();
 
@@ -126,7 +131,7 @@ bool topic_filter::matches(const string& topic) const
     // MQTT v5 Spec, Section 4.7.2:
     // https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901246
 
-    if (n > 0 && is_wildcard(fields_[0]) && nt > 0 && topic_fields[0].size() > 0 &&
+    if (is_wildcard(fields_[0]) && nt > 0 && topic_fields[0].size() > 0 &&
         topic_fields[0][0] == '$') {
         return false;
     }

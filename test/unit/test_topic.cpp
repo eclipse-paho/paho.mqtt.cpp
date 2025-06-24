@@ -273,5 +273,8 @@ TEST_CASE("topic matches", "[topic_filter]")
         REQUIRE(!topic_filter{"#"}.matches("$SYS/bar"));
         REQUIRE(!topic_filter{"$BOB/bar"}.matches("$SYS/bar"));
         REQUIRE(!topic_filter{"+/bar"}.matches("$SYS/bar"));
+        REQUIRE(!topic_filter{""}.matches("foo"));
+        REQUIRE(!topic_filter{""}.matches("foo/bar"));
+        REQUIRE(!topic_filter{"foo/bar"}.matches(""));
     }
 }
