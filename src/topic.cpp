@@ -1,7 +1,7 @@
 // topic.cpp
 
 /*******************************************************************************
- * Copyright (c) 2013-2022 Frank Pagliughi <fpagliughi@mindspring.com>
+ * Copyright (c) 2013-2025Frank Pagliughi <fpagliughi@mindspring.com>
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v2.0
@@ -78,17 +78,33 @@ token_ptr topic::subscribe(const subscribe_options& opts)
 //  						topic_filter
 /////////////////////////////////////////////////////////////////////////////
 
-topic_filter::topic_filter(const string& filter) : fields_(topic::split(filter)) {}
+// If the filter has wildcards, we store the separate fields in a vector,
+// otherwise matching is a simple string comparison, so we just save the
+// filter as the whole string.
+topic_filter::topic_filter(const string& filter)
+{
+    if (has_wildcards(filter)) {
+        filter_ = topic::split(filter);
+    }
+    else {
+        filter_ = filter;
+    }
+}
+
+// Remember, from the v5 spec:
+// "All Topic Names and Topic Filters MUST be at least one character long"
+// [MQTT-4.7.3-1]
+//
+// So, an empty filter can't match anything, and is technically an
+// error.
 
 bool topic_filter::has_wildcards(const string& filter)
 {
-    auto n = filter.size();
-
-    if (n == 0)
+    if (filter.empty())
         return false;
 
     // A '#' should only be the last char, if present
-    if (filter[n - 1] == '#')
+    if (filter.back() == '#')
         return true;
 
     return filter.find('+') != string::npos;
@@ -96,23 +112,25 @@ bool topic_filter::has_wildcards(const string& filter)
 
 bool topic_filter::has_wildcards() const
 {
-    return std::any_of(fields_.cbegin(), fields_.cend(), [](const auto& f) {
-        return is_wildcard(f);
-    });
+    // We parsed for wildcards on construction.
+    // Plain string means no wildcards.
+    return !std::holds_alternative<string>(filter_);
 }
 
 // See if the topic matches this filter.
-// OPTIMIZE: If the filter string doesn't contain any wildcards, then a
-// match is a simple string comparison. We wouldn't need to split the filter
-// or topic into fields.
 bool topic_filter::matches(const string& topic) const
 {
-    auto n = fields_.size();
+    // If the filter string doesn't contain any wildcards,
+    // then a match is a simple string comparison...
+    if (const string* pval = std::get_if<string>(&filter_)) {
+        return *pval == topic;
+    }
 
-    // Spec: All Topic Names and Topic Filters MUST be at least one
-    //   character long [MQTT-4.7.3-1]
-    // So, an empty filter can't match anything, and is technically an
-    // error.
+    // ...otherwise we compare individual fields.
+
+    auto fields = std::get<std::vector<string>>(filter_);
+    auto n = fields.size();
+
     if (n == 0) {
         return false;
     }
@@ -121,12 +139,12 @@ bool topic_filter::matches(const string& topic) const
     auto nt = topic_fields.size();
 
     // Filter can't match a topic that is shorter
-    if (n > nt && !(n == nt + 1 && fields_[n - 1] == "#")) {
+    if (n > nt && !(n == nt + 1 && fields.back() == "#")) {
         return false;
     }
 
     // Might match a longer topic, but only with '#' wildcard
-    if (n < nt && fields_[n - 1] != "#") {
+    if (nt > n && fields.back() != "#") {
         return false;
     }
 
@@ -134,24 +152,44 @@ bool topic_filter::matches(const string& topic) const
     // MQTT v5 Spec, Section 4.7.2:
     // https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901246
 
-    if (is_wildcard(fields_[0]) && nt > 0 && topic_fields[0].size() > 0 &&
+    if (is_wildcard(fields[0]) && nt > 0 && topic_fields[0].size() > 0 &&
         topic_fields[0][0] == '$') {
         return false;
     }
 
     for (size_t i = 0; i < n; ++i) {
-        if (fields_[i] == "#") {
+        if (fields[i] == "#") {
             break;
         }
         if (i == nt && i < n - 1) {
-            return fields_[i + 1] == "#";
+            return fields[i + 1] == "#";
         }
-        if (fields_[i] != "+" && fields_[i] != topic_fields[i]) {
+        if (fields[i] != "+" && fields[i] != topic_fields[i]) {
             return false;
         }
     }
 
     return true;
+}
+
+string topic_filter::to_string() const
+{
+    if (const string* pval = std::get_if<string>(&filter_)) {
+        return *pval;
+    }
+
+    auto fields = std::get<std::vector<string>>(filter_);
+    auto n = fields.size();
+
+    string s;
+    if (n > 0) {
+        for (size_t i = 0; i < n - 1; ++i) {
+            s.append(fields[i]);
+            s.push_back('/');
+        }
+        s.append(fields.back());
+    }
+    return s;
 }
 
 /////////////////////////////////////////////////////////////////////////////

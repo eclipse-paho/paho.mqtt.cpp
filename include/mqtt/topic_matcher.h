@@ -43,7 +43,7 @@ namespace mqtt {
  *
  * This can be used to get an iterator to all filters in the collection that
  * match a topic. A typical use case might be to match incoming messages to
- * specific callback functions based on topics, such as
+ * specific callback functions based on topics.
  *
  * To test against a single filter, see
  * [`TopicFilter`](crate::TopicFilter). This collection is more commonly
@@ -68,7 +68,14 @@ namespace mqtt {
  * A common use for this would be to store callbacks to process incoming
  * messages based on topics.
  *
- * This code was adapted from the Eclipse Python `MQTTMatcher` class:
+ * Note, however, that MQTT v5 has Subscription Identifiers. These are
+ * integer values that can be mapped to specific filters when subscribing.
+ * The server will include the identifier when sending a message to the
+ * client to indicate which filter the message matched. This can be used to
+ * make a simple, efficient, lookup-table for callbacks, etc. It could be a
+ * prefereble way to handle subscriptions when available.
+ *
+ * This code was adapted from the Eclipse Paho Python `MQTTMatcher` class:
  *
  *<https://github.com/eclipse/paho.mqtt.python/blob/master/src/paho/mqtt/matcher.py>
  *

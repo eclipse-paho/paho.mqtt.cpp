@@ -195,7 +195,7 @@ TEST_CASE("publish full binary", "[topic]")
 //						topic_filter
 /////////////////////////////////////////////////////////////////////////////
 
-TEST_CASE("topic has_wildcards", "[topic_filter]")
+TEST_CASE("topic filter has_wildcards", "[topic_filter]")
 {
     REQUIRE(!topic_filter::has_wildcards(TOPIC));
 
@@ -203,7 +203,7 @@ TEST_CASE("topic has_wildcards", "[topic_filter]")
     REQUIRE(topic_filter::has_wildcards("some/multi/wild/#"));
 }
 
-TEST_CASE("topic matches", "[topic_filter]")
+TEST_CASE("topic filter matches", "[topic_filter]")
 {
     SECTION("no_wildcards")
     {
@@ -245,10 +245,7 @@ TEST_CASE("topic matches", "[topic_filter]")
     SECTION("should_match")
     {
         REQUIRE(topic_filter{"foo/bar"}.matches("foo/bar"));
-        REQUIRE(topic_filter{
-            "foo/+",
-        }
-                    .matches("foo/bar"));
+        REQUIRE(topic_filter{"foo/+"}.matches("foo/bar"));
         REQUIRE(topic_filter{"foo/+/baz"}.matches("foo/bar/baz"));
         REQUIRE(topic_filter{"foo/+/#"}.matches("foo/bar/baz"));
         REQUIRE(topic_filter("foo/bar/#").matches("foo/bar/baz"));
@@ -278,4 +275,11 @@ TEST_CASE("topic matches", "[topic_filter]")
         REQUIRE(!topic_filter{""}.matches("foo/bar"));
         REQUIRE(!topic_filter{"foo/bar"}.matches(""));
     }
+}
+
+TEST_CASE("topic filter to_string", "[topic_filter]")
+{
+    REQUIRE(topic_filter{"some/topic/filter"}.to_string() == "some/topic/filter");
+    REQUIRE(topic_filter{"some/+/filter"}.to_string() == "some/+/filter");
+    REQUIRE(topic_filter{"some/topic/#"}.to_string() == "some/topic/#");
 }

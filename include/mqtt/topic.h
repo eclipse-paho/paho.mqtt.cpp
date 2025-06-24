@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////////////////////////////
 /// @file topic.h
-/// Declaration of MQTT topic class
+/// Declaration of classes for MQTT topics and filters
 /// @date May 1, 2013
 /// @author Frank Pagliughi
 /////////////////////////////////////////////////////////////////////////////
@@ -25,6 +25,7 @@
 #define __mqtt_topic_h
 
 #include <vector>
+#include <variant>
 
 #include "MQTTAsync.h"
 #include "mqtt/delivery_token.h"
@@ -40,6 +41,14 @@ class iasync_client;
 
 /**
  * Represents a topic destination, used for publish/subscribe messaging.
+ *
+ * This is primarily a convenience class for publishing multiple messages to
+ * the same topic. It holds all the parameters for publishing the message
+ * other than the payload: topic, QoS, and retain flag. Each publish
+ * operation then only needs to supply the payload.
+ *
+ * It can also be used to subscribe to the specific topic, but this is not
+ * the normal use case.
  */
 class topic
 {
@@ -71,7 +80,7 @@ public:
     )
         : cli_(cli), name_(name), qos_(qos), retained_(retained) {}
     /**
-     * Creates a new topic
+     * Creates a new topic.
      * @param cli Client to which the topic is attached
      * @param name The topic string
      * @param qos The default QoS for publishing.
@@ -85,7 +94,7 @@ public:
         return std::make_shared<topic>(cli, name, qos, retained);
     }
     /**
-     * Gets a reference to the MQTT client used by this topic
+     * Gets a reference to the MQTT client used by this topic.
      * @return The MQTT client used by this topic
      */
     iasync_client& get_client() { return cli_; }
@@ -196,11 +205,19 @@ using const_topic_ptr = topic::const_ptr_t;
  *     '#' - Matches all subsequent fields (must be last field in filter)
  *
  * It can be used to match against specific topics.
+ *
+ * This is simple class for individual topics. For a collection of topics
+ * mapped to arbitrary values, like queues or callback functions, for
+ * processing incoming messages, consider the @ref topic_mapper.
  */
 class topic_filter
 {
-    /** We store the filter as a vector of the individual fields.  */
-    std::vector<string> fields_;
+    /**
+     * If the filter contains wildcards, we split it and store it as a
+     * vector of the individual fields. Otherwise we store the filter as
+     * a string and match with a simple string comparison.
+     */
+    std::variant<string, std::vector<string>> filter_;
 
 public:
     /**
@@ -246,6 +263,11 @@ public:
      *  		otherwise.
      */
     bool matches(const string& topic) const;
+    /**
+     * Gets the topic filter string.
+     * @return The topic filter string.
+     */
+    string to_string() const;
 };
 
 /////////////////////////////////////////////////////////////////////////////
