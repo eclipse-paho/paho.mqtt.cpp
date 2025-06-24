@@ -24,7 +24,7 @@
 
 cmake_minimum_required(VERSION 3.13)
 
-project(PahoMqttCpp VERSION "1.5.1")
+project(PahoMqttCpp VERSION "1.5.2")
 
 ## --- Build options ---
 
