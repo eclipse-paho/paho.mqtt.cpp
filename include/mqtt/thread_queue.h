@@ -152,11 +152,13 @@ public:
      * Sets the capacity of the queue.
      * Note that the capacity can be set to a value smaller than the current
      * size of the queue. In that event, all calls to put() will block until
-     * a sufficient number
+     * a sufficient number of items are removed from the queue.
      */
     void capacity(size_type cap) {
         guard g{lock_};
-        cap_ = cap;
+        cap_ = std::max<size_type>(cap, 1);
+        if (cap_ > que_.size())
+            notFullCond_.notify_all();
     }
     /**
      * Gets the number of items in the queue.
