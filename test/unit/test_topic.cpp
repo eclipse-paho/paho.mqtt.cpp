@@ -232,6 +232,7 @@ TEST_CASE("topic matches", "[topic_filter]")
         REQUIRE(filt.matches("my/topic/name"));
         REQUIRE(filt.matches("my/topic/id"));
         REQUIRE(filt.matches("my/topic/name/and/id"));
+        REQUIRE(filt.matches("my/topic"));
 
         REQUIRE(!filt.matches("my/other/name"));
         REQUIRE(!filt.matches("my/other/id"));
@@ -244,14 +245,14 @@ TEST_CASE("topic matches", "[topic_filter]")
     SECTION("should_match")
     {
         REQUIRE(topic_filter{"foo/bar"}.matches("foo/bar"));
-        REQUIRE(
-            topic_filter{
-                "foo/+",
-            }
-                .matches("foo/bar")
-        );
+        REQUIRE(topic_filter{
+            "foo/+",
+        }
+                    .matches("foo/bar"));
         REQUIRE(topic_filter{"foo/+/baz"}.matches("foo/bar/baz"));
         REQUIRE(topic_filter{"foo/+/#"}.matches("foo/bar/baz"));
+        REQUIRE(topic_filter("foo/bar/#").matches("foo/bar/baz"));
+        REQUIRE(topic_filter("foo/bar/#").matches("foo/bar"));
         REQUIRE(topic_filter{"A/B/+/#"}.matches("A/B/B/C"));
         REQUIRE(topic_filter{"#"}.matches("foo/bar/baz"));
         REQUIRE(topic_filter{"#"}.matches("/foo/bar"));

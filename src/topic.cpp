@@ -109,7 +109,10 @@ bool topic_filter::matches(const string& topic) const
 {
     auto n = fields_.size();
 
-    // Edge case of topic_filter("")
+    // Spec: All Topic Names and Topic Filters MUST be at least one
+    //   character long [MQTT-4.7.3-1]
+    // So, an empty filter can't match anything, and is technically an
+    // error.
     if (n == 0) {
         return false;
     }
@@ -118,7 +121,7 @@ bool topic_filter::matches(const string& topic) const
     auto nt = topic_fields.size();
 
     // Filter can't match a topic that is shorter
-    if (n > nt) {
+    if (n > nt && !(n == nt + 1 && fields_[n - 1] == "#")) {
         return false;
     }
 
@@ -139,6 +142,9 @@ bool topic_filter::matches(const string& topic) const
     for (size_t i = 0; i < n; ++i) {
         if (fields_[i] == "#") {
             break;
+        }
+        if (i == nt && i < n - 1) {
+            return fields_[i + 1] == "#";
         }
         if (fields_[i] != "+" && fields_[i] != topic_fields[i]) {
             return false;

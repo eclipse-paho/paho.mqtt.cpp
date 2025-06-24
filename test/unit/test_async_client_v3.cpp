@@ -534,8 +534,8 @@ public:
 
         // NOTE: Only tokens for messages with QOS=1 and QOS=2 are kept. That's
         // why the vector's size does not account for QOS=0 message tokens
-        std::vector<mqtt::delivery_token_ptr> tokens_pending{cli.get_pending_delivery_tokens(
-        )};
+        std::vector<mqtt::delivery_token_ptr> tokens_pending{cli.get_pending_delivery_tokens()
+        };
         CPPUNIT_ASSERT_EQUAL(2, static_cast<int>(tokens_pending.size()));
 
         mqtt::token_ptr token_disconn{cli.disconnect()};
@@ -831,8 +831,7 @@ public:
         CPPUNIT_ASSERT(cli.is_connected());
 
         mqtt::test::dummy_action_listener listener;
-        mqtt::token_ptr token_sub{
-            cli.subscribe(TOPIC_COLL, GOOD_QOS_COLL, &CONTEXT, listener)
+        mqtt::token_ptr token_sub{cli.subscribe(TOPIC_COLL, GOOD_QOS_COLL, &CONTEXT, listener)
         };
         CPPUNIT_ASSERT(token_sub);
         token_sub->wait_for(TIMEOUT);

@@ -69,6 +69,8 @@ TEST_CASE("matcher matches", "[topic_matcher]")
     REQUIRE((topic_matcher<int>{{"foo/+", 42}}.has_match("foo/bar")));
     REQUIRE((topic_matcher<int>{{"foo/+/baz", 42}}.has_match("foo/bar/baz")));
     REQUIRE((topic_matcher<int>{{"foo/+/#", 42}}.has_match("foo/bar/baz")));
+    REQUIRE((topic_matcher<int>{{"foo/bar/#", 42}}.has_match("foo/bar/baz")));
+    REQUIRE((topic_matcher<int>{{"foo/bar/#", 42}}.has_match("foo/bar")));
     REQUIRE((topic_matcher<int>{{"A/B/+/#", 42}}.has_match("A/B/B/C")));
     REQUIRE((topic_matcher<int>{{"#", 42}}.has_match("foo/bar/baz")));
     REQUIRE((topic_matcher<int>{{"#", 42}}.has_match("/foo/bar")));

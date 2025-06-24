@@ -312,21 +312,27 @@ public:
             auto snode = std::move(nodes_.back());
             nodes_.pop_back();
 
+            const auto map_end = snode.node_->children.end();
+            typename node_map::iterator child;
+
             // If we're at the end of the topic fields, we either have a value,
             // or need to move on to the next node to search.
             if (snode.fields_.empty()) {
                 pval_ = snode.node_->content.get();
-                if (!pval_)
+                if (!pval_) {
+                    // ...but a '#' matches the parent topic
+                    if ((child = snode.node_->children.find("#")) != map_end) {
+                        pval_ = child->second->content.get();
+                        return;
+                    }
                     this->next();
+                }
                 return;
             }
 
             // Get the next field of the topic to search
             auto field = std::move(snode.fields_.front());
             snode.fields_.pop_front();
-
-            typename node_map::iterator child;
-            const auto map_end = snode.node_->children.end();
 
             // Look for an exact match
             if ((child = snode.node_->children.find(field)) != map_end) {
