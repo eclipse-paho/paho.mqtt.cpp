@@ -76,7 +76,7 @@ int main(int argc, char* argv[])
 
     // Set up the connect options
 
-    auto connOpts = mqtt::connect_options_builder()
+    auto connOpts = mqtt::connect_options_builder::v5()
                         .properties({{mqtt::property::SESSION_EXPIRY_INTERVAL, 604800}})
                         .clean_start(false)
                         .will(std::move(lwt))

@@ -46,6 +46,8 @@ The primary changes in the v1.5 versions are:
 - Bump the CMake to v3.13
 - Fix a large number of CMake build issues
 - Updated the GitHub CI
+- (v1.5.3) Fixes for building this library and the Paho C library with the latest C & C++ compilers, like Clang 20 and GCC 15 which created some breaking hcanges for legacy code.
+
 
 For the full list of updates in each release, see the [CHANGELOG](https://github.com/eclipse-paho/paho.mqtt.cpp/blob/master/CHANGELOG.md).
 
@@ -100,7 +102,7 @@ This requires the CMake option `PAHO_WITH_MQTT_C` set.
 ```
 $ git clone https://github.com/eclipse/paho.mqtt.cpp
 $ cd paho.mqtt.cpp
-$ git co v1.5.2
+$ git co v1.5.3
 
 $ git submodule init
 $ git submodule update
@@ -173,7 +175,7 @@ If the Paho C library is not already installed, the recommended version can be b
 
     $ git clone https://github.com/eclipse/paho.mqtt.cpp
     $ cd paho.mqtt.cpp
-    $ git co v1.5.2
+    $ git co v1.5.3
     $ git submodule init
     $ git submodule update
 

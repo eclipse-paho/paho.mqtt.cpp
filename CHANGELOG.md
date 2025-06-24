@@ -6,6 +6,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Version 1.5.3](https://github.com/eclipse/paho.mqtt.cpp/compare/v1.5.2..v1.5.3) (2025-05-15)
+
+- Fix the bundled Paho C build foc C23 compilers by forcing C99 compliance in CMake build
+- [#544](https://github.com/eclipse-paho/paho.mqtt.cpp/pull/544) and [#550](https://github.com/eclipse-paho/paho.mqtt.cpp/pull/550) Use std::vector<unsigned char> for the ALPN protocol list in wire format
+- [#547](https://github.com/eclipse-paho/paho.mqtt.cpp/pull/547) Fixed up some of the v5 examples for proper connect options
+- [#549](https://github.com/eclipse-paho/paho.mqtt.cpp/pull/549) Update TEST_EXTERNAL_SERVER urls
+
+
 ## [Version 1.5.2](https://github.com/eclipse/paho.mqtt.cpp/compare/v1.5.1..v1.5.2) (2025-03-11)
 
 - Fixed the Version number and string.

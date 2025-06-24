@@ -98,7 +98,7 @@ class async_client_v3_test : public CppUnit::TestFixture
 // NOTE: This test case requires network access. It uses one of
 //  	 the public available MQTT brokers
 #if defined(TEST_EXTERNAL_SERVER)
-    const std::string GOOD_SERVER_URI{"tcp://mqtt.eclipse.org:1883"};
+    const std::string GOOD_SERVER_URI{"tcp://mqtt.eclipseprojects.io:1883"};
 #else
     const std::string GOOD_SERVER_URI{"tcp://localhost:1883"};
     const std::string GOOD_SSL_SERVER_URI{"ssl://localhost:18885"};

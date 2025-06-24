@@ -1,6 +1,6 @@
 /*******************************************************************************
  * Copyright (c) 2016 Guilherme Ferreira <guilherme.maciel.ferreira@gmail.com>
- * Copyright (c) 2016-2021 Frank Pagliughi <fpagliughi@mindspring.com>
+ * Copyright (c) 2016-2025 Frank Pagliughi <fpagliughi@mindspring.com>
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v2.0
@@ -117,7 +117,7 @@ void ssl_options::update_c_struct()
 
     if (!protos_.empty()) {
         opts_.protos = protos_.data();
-        opts_.protos_len = unsigned(protos_.length());
+        opts_.protos_len = unsigned(protos_.size());
     }
     else {
         opts_.protos = nullptr;
@@ -299,7 +299,7 @@ void ssl_options::set_psk_handler(psk_handler cb)
 std::vector<string> ssl_options::get_alpn_protos() const
 {
     std::vector<string> protos;
-    size_t i = 0, n = protos_.length();
+    size_t i = 0, n = protos_.size();
 
     while (i < n) {
         size_t sn = protos_[i++];
@@ -324,7 +324,7 @@ void ssl_options::set_alpn_protos(const std::vector<string>& protos)
     using uchar = unsigned char;
 
     if (!protos.empty()) {
-        std::basic_string<uchar> protoBin;
+        std::vector<uchar> protoBin;
         for (const auto& proto : protos) {
             protoBin.push_back(uchar(proto.length()));
             for (const char c : proto) protoBin.push_back(uchar(c));
@@ -332,10 +332,10 @@ void ssl_options::set_alpn_protos(const std::vector<string>& protos)
         protos_ = std::move(protoBin);
 
         opts_.protos = protos_.data();
-        opts_.protos_len = unsigned(protos_.length());
+        opts_.protos_len = static_cast<unsigned>(protos_.size());
     }
     else {
-        protos_ = std::basic_string<uchar>();
+        protos_.clear();
         opts_.protos = nullptr;
         opts_.protos_len = 0;
     }

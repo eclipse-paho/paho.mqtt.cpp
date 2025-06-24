@@ -24,7 +24,7 @@
 
 cmake_minimum_required(VERSION 3.13)
 
-project(PahoMqttCpp VERSION "1.5.2")
+project(PahoMqttCpp VERSION "1.5.3")
 
 ## --- Build options ---
 
@@ -71,6 +71,7 @@ if(PAHO_WITH_MQTT_C)
     if(NOT WIN32)
         set(PAHO_WITH_UNIX_SOCKETS TRUE CACHE BOOL "Support for Unix-domain sockets")
     endif()
+    set(CMAKE_C_STANDARD 99 CACHE STRING "Paho C language standard")
 
     add_subdirectory(${PROJECT_SOURCE_DIR}/externals/paho-mqtt-c)
 

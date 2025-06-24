@@ -193,9 +193,7 @@ int main(int argc, char* argv[])
 
     mqtt::async_client cli(serverURI, CLIENT_ID);
 
-    auto connOpts = mqtt::connect_options_builder::v5()
-        .clean_start(true)
-        .finalize();
+    auto connOpts = mqtt::connect_options_builder::v5().clean_start(true).finalize();
 
     // Install the callback(s) before connecting.
     callback cb(cli, connOpts);
