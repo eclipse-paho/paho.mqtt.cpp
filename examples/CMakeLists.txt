@@ -49,6 +49,7 @@ set(EXECUTABLES
     sync_reconnect
     topic_publish
     ws_publish
+    self_adaptive_publisher
 )
 
 # These will only be built if SSL selected

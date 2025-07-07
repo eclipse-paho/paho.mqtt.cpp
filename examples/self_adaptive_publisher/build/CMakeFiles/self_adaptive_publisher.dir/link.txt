@@ -1,0 +1,1 @@
+/usr/bin/c++ -rdynamic CMakeFiles/self_adaptive_publisher.dir/self_adaptive_publisher.o CMakeFiles/self_adaptive_publisher.dir/broker_list_manager.o CMakeFiles/self_adaptive_publisher.dir/broker_monitor_thread.o CMakeFiles/self_adaptive_publisher.dir/mqtt_manager.o -o self_adaptive_publisher  -lpaho-mqttpp3 -lpaho-mqtt3a 
