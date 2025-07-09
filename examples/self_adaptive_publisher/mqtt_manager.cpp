@@ -67,26 +67,41 @@ bool SelfAdaptiveMqttManager::connect() {
     is_connecting_ = true;
     
     try {
-        // 利用可能なブローカーを順番に試行
+        // 利用可能なブローカーをスコア順にソート
         auto available_brokers = broker_manager_->get_all_brokers();
-        std::vector<std::string> broker_uris;
+        std::vector<std::shared_ptr<BrokerInfo>> sorted_brokers;
         
         for (const auto& broker : available_brokers) {
             if (broker->is_available) {
-                broker_uris.push_back(broker->uri);
+                sorted_brokers.push_back(broker);
             }
         }
         
-        if (broker_uris.empty()) {
+        if (sorted_brokers.empty()) {
             std::cerr << "利用可能なブローカーがありません" << std::endl;
             is_connecting_ = false;
             return false;
         }
         
-        // 各ブローカーを順番に試行
-        for (size_t i = 0; i < broker_uris.size(); ++i) {
-            std::string target_uri = broker_uris[i];
-            std::cout << "初期接続を試行します (" << (i + 1) << "/" << broker_uris.size() << "): " << target_uri << std::endl;
+        // スコアが高い順にソート
+        std::sort(sorted_brokers.begin(), sorted_brokers.end(),
+                  [](const std::shared_ptr<BrokerInfo>& a, const std::shared_ptr<BrokerInfo>& b) {
+                      return a->score > b->score;
+                  });
+        
+        // スコア順にブローカーを表示
+        std::cout << "初期接続用にブローカーをスコア順に並べ替えました:" << std::endl;
+        for (size_t i = 0; i < sorted_brokers.size(); ++i) {
+            std::cout << "  " << (i + 1) << ". " << sorted_brokers[i]->uri 
+                      << " (スコア: " << sorted_brokers[i]->score << ")" << std::endl;
+        }
+        
+        // 各ブローカーをスコア順に試行
+        for (size_t i = 0; i < sorted_brokers.size(); ++i) {
+            std::string target_uri = sorted_brokers[i]->uri;
+            double target_score = sorted_brokers[i]->score;
+            std::cout << "初期接続を試行します (" << (i + 1) << "/" << sorted_brokers.size() 
+                      << "): " << target_uri << " (スコア: " << target_score << ")" << std::endl;
             
             if (try_connect_to_broker(target_uri)) {
                 broker_manager_->set_current_broker(target_uri);
@@ -319,25 +334,33 @@ void SelfAdaptiveMqttManager::handle_connection_failure(const std::string& faile
     // 次のブローカーを試行
     std::cout << "次のブローカーを試行します..." << std::endl;
     
-    // 利用可能なブローカーを確認
+    // 利用可能なブローカーをスコア順にソート
     auto available_brokers = broker_manager_->get_all_brokers();
-    std::vector<std::string> broker_uris;
+    std::vector<std::shared_ptr<BrokerInfo>> sorted_brokers;
     
     for (const auto& broker : available_brokers) {
         if (broker->is_available) {
-            broker_uris.push_back(broker->uri);
+            sorted_brokers.push_back(broker);
         }
     }
     
-    if (broker_uris.empty()) {
+    if (sorted_brokers.empty()) {
         std::cerr << "利用可能なブローカーがありません" << std::endl;
         return;
     }
     
+    // スコアが高い順にソート
+    std::sort(sorted_brokers.begin(), sorted_brokers.end(),
+              [](const std::shared_ptr<BrokerInfo>& a, const std::shared_ptr<BrokerInfo>& b) {
+                  return a->score > b->score;
+              });
+    
     // 次のブローカーを試行
-    if (current_broker_try_index_ < broker_uris.size()) {
-        std::string next_uri = broker_uris[current_broker_try_index_];
-        std::cout << "次のブローカーを試行します: " << next_uri << std::endl;
+    if (current_broker_try_index_ < sorted_brokers.size()) {
+        std::string next_uri = sorted_brokers[current_broker_try_index_]->uri;
+        double next_score = sorted_brokers[current_broker_try_index_]->score;
+        std::cout << "次のブローカーを試行します (" << (current_broker_try_index_ + 1) << "/" << sorted_brokers.size() 
+                  << "): " << next_uri << " (スコア: " << next_score << ")" << std::endl;
         
         if (try_connect_to_broker(next_uri)) {
             broker_manager_->set_current_broker(next_uri);
@@ -363,8 +386,6 @@ void SelfAdaptiveMqttManager::handle_connection_failure(const std::string& faile
     }
 }
 
-// TODO: どこでスコア計算をしているか
-// > broker_manager_でスコアを計算しているが、実際の選択では使用していない
 void SelfAdaptiveMqttManager::switch_to_best_broker() {
     std::cout << "switch_to_best_broker() を開始します..." << std::endl;
     
@@ -381,29 +402,44 @@ void SelfAdaptiveMqttManager::switch_to_best_broker() {
     std::cout << "現在のクライアントを破棄します..." << std::endl;
     destroy_client();
     
-    // 利用可能なブローカーを順番に試行
+    // 利用可能なブローカーをスコア順にソート
     auto available_brokers = broker_manager_->get_all_brokers();
-    std::vector<std::string> broker_uris;
+    std::vector<std::shared_ptr<BrokerInfo>> sorted_brokers;
     
     for (const auto& broker : available_brokers) {
         if (broker->is_available) {
-            broker_uris.push_back(broker->uri);
+            sorted_brokers.push_back(broker);
         }
     }
     
-    if (broker_uris.empty()) {
+    if (sorted_brokers.empty()) {
         std::cerr << "利用可能なブローカーがありません" << std::endl;
         is_connecting_ = false;
         return;
     }
     
+    // スコアが高い順にソート
+    std::sort(sorted_brokers.begin(), sorted_brokers.end(),
+              [](const std::shared_ptr<BrokerInfo>& a, const std::shared_ptr<BrokerInfo>& b) {
+                  return a->score > b->score;
+              });
+    
+    // スコア順にブローカーを表示
+    std::cout << "ブローカーをスコア順に並べ替えました:" << std::endl;
+    for (size_t i = 0; i < sorted_brokers.size(); ++i) {
+        std::cout << "  " << (i + 1) << ". " << sorted_brokers[i]->uri 
+                  << " (スコア: " << sorted_brokers[i]->score << ")" << std::endl;
+    }
+    
     // 現在の試行インデックスを進める
-    if (current_broker_try_index_ >= broker_uris.size()) {
+    if (current_broker_try_index_ >= sorted_brokers.size()) {
         current_broker_try_index_ = 0;  // 最初に戻る
     }
     
-    std::string target_uri = broker_uris[current_broker_try_index_];
-    std::cout << "ブローカーを試行します (" << (current_broker_try_index_ + 1) << "/" << broker_uris.size() << "): " << target_uri << std::endl;
+    std::string target_uri = sorted_brokers[current_broker_try_index_]->uri;
+    double target_score = sorted_brokers[current_broker_try_index_]->score;
+    std::cout << "ブローカーを試行します (" << (current_broker_try_index_ + 1) << "/" << sorted_brokers.size() 
+              << "): " << target_uri << " (スコア: " << target_score << ")" << std::endl;
     
     // 新しいブローカーに接続
     if (try_connect_to_broker(target_uri)) {
