@@ -17,7 +17,7 @@ SelfAdaptiveMqttManager::SelfAdaptiveMqttManager(const std::string& client_id,
     
     // デフォルト接続オプションを設定
     connect_options_ = mqtt::connect_options_builder()
-                          .connect_timeout(std::chrono::seconds(10))
+                          .connect_timeout(std::chrono::seconds(5))  // タイムアウトを5秒に短縮
                           .clean_session()
                           .finalize();
     
@@ -150,42 +150,72 @@ void SelfAdaptiveMqttManager::disconnect() {
 }
 
 bool SelfAdaptiveMqttManager::is_connected() const {
-    return is_connected_;
+    // 内部フラグとクライアントの実際の接続状態の両方を確認
+    if (!is_connected_ || !client_) {
+        return false;
+    }
+    
+    // クライアントの実際の接続状態も確認
+    bool client_connected = client_->is_connected();
+    if (!client_connected && is_connected_) {
+        std::cout << "警告: 内部フラグは接続中だが、クライアントは切断状態です" << std::endl;
+    }
+    
+    return client_connected;
 }
 
 mqtt::delivery_token_ptr SelfAdaptiveMqttManager::publish(const std::string& topic, 
                                                          const std::string& payload, 
                                                          int qos, 
                                                          bool retained) {
-    if (!is_connected_) {
-        // 接続されていない場合はキューに追加
+    if (!is_connected_ || !client_) {
+        // 接続されていない場合やクライアントが存在しない場合はキューに追加
         add_message_to_queue(topic, payload, qos, retained);
         return nullptr;
     }
     
     try {
+        // クライアントの接続状態を確認
+        if (!client_->is_connected()) {
+            std::cout << "MQTTクライアントが切断状態です。メッセージをキューに追加します。" << std::endl;
+            is_connected_ = false;
+            add_message_to_queue(topic, payload, qos, retained);
+            return nullptr;
+        }
+        
         return client_->publish(topic, payload, qos, retained);
     } catch (const std::exception& e) {
         std::cerr << "パブリッシュエラー: " << e.what() << std::endl;
-        // エラー時もキューに追加
+        // エラー時は接続状態を無効化してキューに追加
+        is_connected_ = false;
         add_message_to_queue(topic, payload, qos, retained);
         return nullptr;
     }
 }
 
 mqtt::delivery_token_ptr SelfAdaptiveMqttManager::publish(mqtt::message_ptr msg) {
-    if (!is_connected_) {
-        // 接続されていない場合はキューに追加
+    if (!is_connected_ || !client_) {
+        // 接続されていない場合やクライアントが存在しない場合はキューに追加
         add_message_to_queue(msg->get_topic(), msg->get_payload_str(), 
                            msg->get_qos(), msg->is_retained());
         return nullptr;
     }
     
     try {
+        // クライアントの接続状態を確認
+        if (!client_->is_connected()) {
+            std::cout << "MQTTクライアントが切断状態です。メッセージをキューに追加します。" << std::endl;
+            is_connected_ = false;
+            add_message_to_queue(msg->get_topic(), msg->get_payload_str(), 
+                               msg->get_qos(), msg->is_retained());
+            return nullptr;
+        }
+        
         return client_->publish(msg);
     } catch (const std::exception& e) {
         std::cerr << "パブリッシュエラー: " << e.what() << std::endl;
-        // エラー時もキューに追加
+        // エラー時は接続状態を無効化してキューに追加
+        is_connected_ = false;
         add_message_to_queue(msg->get_topic(), msg->get_payload_str(), 
                            msg->get_qos(), msg->is_retained());
         return nullptr;
@@ -259,8 +289,22 @@ void SelfAdaptiveMqttManager::connection_lost(const std::string& cause) {
         on_connection_lost_(cause);
     }
     
-    // 再接続を試行
-    switch_to_best_broker();
+    // 利用可能なブローカーがあるかチェック
+    auto available_brokers = broker_manager_->get_all_brokers();
+    bool has_available_broker = false;
+    for (const auto& broker : available_brokers) {
+        if (broker->is_available) {
+            has_available_broker = true;
+            break;
+        }
+    }
+    
+    if (has_available_broker) {
+        std::cout << "利用可能なブローカーが見つかりました。再接続を試行します。" << std::endl;
+        switch_to_best_broker();
+    } else {
+        std::cout << "利用可能なブローカーがありません。再接続をスキップします。" << std::endl;
+    }
 }
 
 void SelfAdaptiveMqttManager::connected(const std::string& cause) {
@@ -308,11 +352,25 @@ bool SelfAdaptiveMqttManager::try_connect_to_broker(const std::string& broker_ur
         auto token = client_->connect(connect_options_);
         
         std::cout << "接続完了を待機します..." << std::endl;
-        token->wait_for(std::chrono::seconds(10));
+        bool wait_success = token->wait_for(std::chrono::seconds(5));  // タイムアウトを5秒に短縮
         
         std::cout << "接続結果を確認します..." << std::endl;
+        
+        // まず、wait_forが成功したかを確認
+        if (!wait_success) {
+            std::cout << "接続タイムアウト: " << broker_uri << std::endl;
+            return false;
+        }
+        
+        // トークンの状態を詳細に確認
         if (token->get_return_code() == 0) {
             std::cout << "接続成功: " << broker_uri << std::endl;
+            // 接続成功時にクライアントの接続状態を確認
+            if (client_ && client_->is_connected()) {
+                std::cout << "MQTTクライアントの接続状態を確認しました: 接続中" << std::endl;
+            } else {
+                std::cout << "警告: MQTTクライアントの接続状態が不明です" << std::endl;
+            }
             return true;
         } else {
             std::cerr << "接続失敗: " << broker_uri << " (コード: " << token->get_return_code() << ")" << std::endl;
@@ -431,8 +489,13 @@ void SelfAdaptiveMqttManager::switch_to_best_broker() {
                   << " (スコア: " << sorted_brokers[i]->score << ")" << std::endl;
     }
     
-    // 現在の試行インデックスを進める
-    if (current_broker_try_index_ >= sorted_brokers.size()) {
+    // 現在接続中のブローカーが利用不可の場合は、インデックスを0にリセット
+    auto current_broker = broker_manager_->get_current_broker();
+    if (current_broker && !current_broker->is_available) {
+        std::cout << "現在接続中のブローカーが利用不可になりました: " << current_broker->uri << std::endl;
+        std::cout << "利用可能なブローカーから開始します" << std::endl;
+        current_broker_try_index_ = 0;  // 利用可能なブローカーから開始
+    } else if (current_broker_try_index_ >= sorted_brokers.size()) {
         current_broker_try_index_ = 0;  // 最初に戻る
     }
     
@@ -464,10 +527,21 @@ void SelfAdaptiveMqttManager::switch_to_best_broker() {
 void SelfAdaptiveMqttManager::resend_queued_messages() {
     std::lock_guard<std::mutex> lock(queue_mutex_);
     
+    if (!client_ || !client_->is_connected()) {
+        std::cout << "クライアントが接続されていないため、キューされたメッセージの再送をスキップします" << std::endl;
+        return;
+    }
+    
     while (!message_queue_.empty()) {
         const auto& queued_msg = message_queue_.front();
         
         try {
+            // 再送前に接続状態を再確認
+            if (!client_->is_connected()) {
+                std::cout << "再送中にクライアントが切断されました。残りのメッセージはキューに残します" << std::endl;
+                break;
+            }
+            
             client_->publish(queued_msg.topic, queued_msg.payload, queued_msg.qos, queued_msg.retained);
             std::cout << "キューされたメッセージを再送しました: " << queued_msg.topic << std::endl;
         } catch (const std::exception& e) {
@@ -523,6 +597,24 @@ void SelfAdaptiveMqttManager::on_metrics_updated(const std::string& broker_uri,
               << " (レイテンシ: " << latency << "ms, "
               << "帯域: " << bandwidth << " bytes/s, "
               << "接続数: " << connection_count << ")" << std::endl;
+    
+    // ブローカーが復旧した場合の処理
+    if (broker_manager_->is_broker_available(broker_uri)) {
+        auto current_broker = broker_manager_->get_current_broker();
+        if (current_broker && current_broker->uri != broker_uri) {
+            // 復旧したブローカーのスコアを確認
+            auto brokers = broker_manager_->get_all_brokers();
+            for (const auto& broker : brokers) {
+                if (broker->uri == broker_uri) {
+                    std::cout << "復旧したブローカーのスコア: " << broker_uri << " = " << broker->score << std::endl;
+                    if (current_broker->score < broker->score) {
+                        std::cout << "復旧したブローカーの方が高スコアです。切り替えを検討します。" << std::endl;
+                    }
+                    break;
+                }
+            }
+        }
+    }
     
     // ブローカー切り替えの必要性をチェック
     if (broker_manager_->should_switch_broker()) {

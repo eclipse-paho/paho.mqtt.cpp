@@ -72,6 +72,7 @@ public:
     // ブローカー状態管理
     void mark_broker_unavailable(const std::string& uri);
     void mark_broker_available(const std::string& uri);
+    bool is_broker_available(const std::string& uri) const;
     
     // 統計情報
     size_t get_broker_count() const;

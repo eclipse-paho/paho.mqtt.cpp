@@ -234,9 +234,20 @@ void BrokerListManager::mark_broker_available(const std::string& uri) {
         if (broker->uri == uri) {
             broker->is_available = true;
             broker->update_score(weights);
+            std::cout << "ブローカーを利用可能に設定しました: " << uri << " (スコア: " << broker->score << ")" << std::endl;
             break;
         }
     }
+}
+
+bool BrokerListManager::is_broker_available(const std::string& uri) const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    for (const auto& broker : brokers_) {
+        if (broker->uri == uri) {
+            return broker->is_available;
+        }
+    }
+    return false;
 }
 
 size_t BrokerListManager::get_broker_count() const {

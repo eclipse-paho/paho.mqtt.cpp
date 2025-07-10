@@ -130,6 +130,12 @@ void BrokerMonitorThread::measure_latency(const std::string& broker_uri) {
                 double current_bandwidth = broker->bandwidth;
                 int current_connections = broker->connection_count;
                 
+                // ブローカーが復旧した場合は利用可能に設定
+                if (!broker->is_available) {
+                    std::cout << "ブローカーが復旧しました: " << broker_uri << std::endl;
+                    broker_manager_->mark_broker_available(broker_uri);
+                }
+                
                 // メトリクスを更新
                 broker_manager_->update_broker_metrics(broker_uri, latency, current_bandwidth, current_connections);
                 
@@ -159,6 +165,12 @@ void BrokerMonitorThread::measure_bandwidth(const std::string& broker_uri) {
                 double current_latency = broker->latency;
                 int current_connections = broker->connection_count;
                 
+                // ブローカーが復旧した場合は利用可能に設定
+                if (!broker->is_available) {
+                    std::cout << "ブローカーが復旧しました: " << broker_uri << std::endl;
+                    broker_manager_->mark_broker_available(broker_uri);
+                }
+                
                 // メトリクスを更新
                 broker_manager_->update_broker_metrics(broker_uri, current_latency, bandwidth, current_connections);
                 
@@ -187,6 +199,12 @@ void BrokerMonitorThread::check_connection_count(const std::string& broker_uri) 
             if (broker->uri == broker_uri) {
                 double current_latency = broker->latency;
                 double current_bandwidth = broker->bandwidth;
+                
+                // ブローカーが復旧した場合は利用可能に設定
+                if (!broker->is_available) {
+                    std::cout << "ブローカーが復旧しました: " << broker_uri << std::endl;
+                    broker_manager_->mark_broker_available(broker_uri);
+                }
                 
                 // メトリクスを更新
                 broker_manager_->update_broker_metrics(broker_uri, current_latency, current_bandwidth, connection_count);
