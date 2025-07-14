@@ -157,7 +157,7 @@ public:
      * @param props MQTT v5 properties for the will message.
      */
     will_options(
-        string_ref top, const string& payload, int qos = DFLT_QOS, bool retained = DFLT_QOS,
+        string_ref top, const string& payload, int qos = DFLT_QOS, bool retained = DFLT_RETAINED,
         const properties& props = properties()
     );
     /**
