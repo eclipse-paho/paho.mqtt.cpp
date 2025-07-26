@@ -182,6 +182,11 @@ public:
      */
     virtual std::vector<delivery_token_ptr> get_pending_delivery_tokens() const = 0;
     /**
+     * Returns the current number of buffered (publish) messages for this client.
+     * @return number of buffered messages
+     */
+    virtual int get_buffered_messages_num() const = 0;
+    /**
      * Returns the client ID used by this client.
      * @return string
      */
