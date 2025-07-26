@@ -109,6 +109,11 @@ public:
         return std::vector<mqtt::delivery_token_ptr>{};
     };
 
+    int get_buffered_messages_num() const override
+    {
+        return 0;
+    }
+
     std::string get_client_id() const override { return std::string{}; };
 
     std::string get_server_uri() const override { return std::string{}; };

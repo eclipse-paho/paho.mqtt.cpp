@@ -31,6 +31,12 @@
 #include "mqtt/response_options.h"
 #include "mqtt/token.h"
 
+// Include MQTTAsyncUtils, but need a workaround for the error
+// ""redeclaration of C++ built-in type ‘bool’" inside this header"
+#define bool c_bool  
+#include <MQTTAsyncUtils.h>
+#undef bool
+
 #define UNUSED(x) (void)(x)
 
 namespace mqtt {
@@ -559,7 +565,21 @@ std::vector<delivery_token_ptr> async_client::get_pending_delivery_tokens() cons
         }
     }
     return toks;
+
 }
+
+int async_client::get_buffered_messages_num() const
+{
+    // Gets number of all buffered messages (QOS0-2)
+    // I'd like to have used MQTTAsync_getNoBufferedMessages() from MQTTAsyncUtils.h
+    // directly, but I haven't gotten it to compile correctly
+    // I hope the C++ lock_ also serves the same functionality as the C MQTTAsync mutex
+    
+    guard g(lock_);
+    return ((MQTTAsyncs*)cli_)->noBufferedMessages;
+}
+
+
 
 // --------------------------------------------------------------------------
 // Publish
