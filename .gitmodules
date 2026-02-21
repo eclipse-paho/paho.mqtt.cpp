@@ -1,3 +1,3 @@
-[submodule "src/externals/paho-mqtt-c"]
-	path = externals/paho-mqtt-c
+[submodule "externals/paho.mqtt.c"]
+	path = externals/paho.mqtt.c
 	url = https://github.com/eclipse/paho.mqtt.c.git

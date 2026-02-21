@@ -73,7 +73,7 @@ if(PAHO_WITH_MQTT_C)
     endif()
     set(CMAKE_C_STANDARD 99 CACHE STRING "Paho C language standard")
 
-    add_subdirectory(${PROJECT_SOURCE_DIR}/externals/paho-mqtt-c)
+    add_subdirectory(${PROJECT_SOURCE_DIR}/externals/paho.mqtt.c)
 
     ## Alias namespace so that the full names can be used with the subdir.
     if(PAHO_BUILD_SHARED)
