@@ -170,14 +170,12 @@ unsubscribe_response client::unsubscribe(
 
 void client::disconnect()
 {
-    cli_.stop_consuming();
     if (!cli_.disconnect()->wait_for(timeout_))
         throw timeout_error();
 }
 
 void client::disconnect(int timeoutMS)
 {
-    cli_.stop_consuming();
     if (!cli_.disconnect(timeoutMS)->wait_for(timeout_))
         throw timeout_error();
 }

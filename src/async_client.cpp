@@ -92,7 +92,11 @@ async_client::~async_client() { MQTTAsync_destroy(&cli_); }
 // 'context' should be the address of the async_client object that
 // registered the callback.
 
-// Callback for MQTTAsync_setConnected()
+// Callback from the C library for when the client is initially
+// connected or reconnected.
+//
+// Installed via MQTTAsync_setConnected()
+//
 // This is installed with the normal callbacks and with a call to
 // reconnect() to indicate that it succeeded. It signals the client's
 // connect token then calls any registered callbacks.
@@ -120,14 +124,23 @@ void async_client::on_connected(void* context, char* cause)
         if (connHandler)
             connHandler(cause_str);
 
-        if (que)
-            que->put(connected_event{cause_str});
+        if (que) {
+            try {
+                que->put(connected_event{cause_str});
+            }
+            catch (const queue_closed&) {
+            }
+        }
     }
 }
 
-// Callback for when the connection is lost.
+// Callback for when the connection is (unecpectedly) lost. This
+// typically happens if the network goes down or if the server drops the
+// connection due to a protocol violation.
+//
 // This is called from the MQTTAsync_connectionLost registered via
 // MQTTAsync_setCallbacks().
+//
 // It calls the registered handlers then, if there's a consumer queue, it
 // places a null pointer in the queue to alert the consumer to a closed
 // connection.
@@ -151,8 +164,13 @@ void async_client::on_connection_lost(void* context, char* cause)
         if (connLostHandler)
             connLostHandler(cause_str);
 
-        if (que)
-            que->put(connection_lost_event{cause_str});
+        if (que) {
+            try {
+                que->put(connection_lost_event{cause_str});
+            }
+            catch (const queue_closed&) {
+            }
+        }
     }
 }
 
@@ -176,8 +194,13 @@ void async_client::on_disconnected(
         if (disconnectedHandler)
             disconnectedHandler(props, ReasonCode(reasonCode));
 
-        if (que)
-            que->put(disconnected_event{std::move(props), ReasonCode(reasonCode)});
+        if (que) {
+            try {
+                que->put(disconnected_event{std::move(props), ReasonCode(reasonCode)});
+            }
+            catch (const queue_closed&) {
+            }
+        }
     }
 }
 
@@ -208,8 +231,13 @@ int async_client::on_message_arrived(
         if (cb)
             cb->message_arrived(m);
 
-        if (que)
-            que->put(m);
+        if (que) {
+            try {
+                que->put(m);
+            }
+            catch (const queue_closed&) {
+            }
+        }
     }
 
     MQTTAsync_freeMessage(&msg);
@@ -854,6 +882,10 @@ token_ptr async_client::unsubscribe(
 
 void async_client::start_consuming()
 {
+    // Don't do anything if the consumer queue is already up.
+    if (que_ && !que_->closed())
+        return;
+
     // Make sure callbacks don't happen while we update the que, etc
     disable_callbacks();
 

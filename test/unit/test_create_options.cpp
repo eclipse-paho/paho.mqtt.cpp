@@ -65,9 +65,10 @@ TEST_CASE("create_options_builder default ctor", "[options]")
 
 TEST_CASE("create_options_builder sets", "[options]")
 {
-    const auto opts =
-        create_options_builder().send_while_disconnected().delete_oldest_messages().finalize(
-        );
+    const auto opts = create_options_builder()
+                          .send_while_disconnected()
+                          .delete_oldest_messages()
+                          .finalize();
 
     REQUIRE(opts.get_send_while_disconnected());
     REQUIRE(opts.get_delete_oldest_messages());
