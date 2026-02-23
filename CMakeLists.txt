@@ -5,7 +5,7 @@
 #*******************************************************************************
 # This is part of the Paho MQTT C++ client library.
 #
-# Copyright (c) 2017-2025, Frank Pagliughi
+# Copyright (c) 2017-2026, Frank Pagliughi
 # Copyright (c) 2016-2017, Guilherme Maciel Ferreira
 #
 # All rights reserved. This program and the accompanying materials
@@ -102,7 +102,10 @@ if(PAHO_WITH_MQTT_C)
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     )
 else()
-    find_package(eclipse-paho-mqtt-c REQUIRED)
+    find_package(eclipse-paho-mqtt-c 1.3.14 REQUIRED)
+    if(eclipse-paho-mqtt-c_FOUND)
+        message(STATUS "Found Paho C v${eclipse-paho-mqtt-c_VERSION}")
+    endif()
 endif()
 
 # --- System Details ---
