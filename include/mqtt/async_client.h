@@ -59,24 +59,24 @@
 
 namespace mqtt {
 
+/** The version number for the client library. */
+const uint32_t PAHO_MQTTPP_VERSION = 0x01060000;
+/** The version string for the client library  */
+const string PAHO_MQTTPP_VERSION_STR("Paho MQTT C++ (mqttpp) v1.6.0");
+/** Copyright notice for the client library */
+const string PAHO_MQTTPP_COPYRIGHT("Copyright (c) 2013-2026 Frank Pagliughi");
+
 // OBSOLETE: The legacy constants that lacked the "PAHO_MQTTPP_" prefix
 // clashed with #define's from other libraries and will be removed at the
 // next major version upgrade.
 
-#if defined(PAHO_MQTTPP_VERSIONS)
+#if !defined(PAHO_MQTTPP_VERSIONS)
 /** The version number for the client library. */
-const uint32_t PAHO_MQTTPP_VERSION = 0x01050004;
+const uint32_t VERSION{PAHO_MQTTPP_VERSION};
 /** The version string for the client library  */
-const string PAHO_MQTTPP_VERSION_STR("Paho MQTT C++ (mqttpp) v. 1.5.4");
+const string VERSION_STR{PAHO_MQTTPP_VERSION_STR};
 /** Copyright notice for the client library */
-const string PAHO_MQTTPP_COPYRIGHT("Copyright (c) 2013-2025 Frank Pagliughi");
-#else
-/** The version number for the client library. */
-const uint32_t VERSION = 0x01050004;
-/** The version string for the client library  */
-const string VERSION_STR("Paho MQTT C++ (mqttpp) v. 1.5.4");
-/** Copyright notice for the client library */
-const string COPYRIGHT("Copyright (c) 2013-2025 Frank Pagliughi");
+const string COPYRIGHT{PAHO_MQTTPP_COPYRIGHT};
 #endif
 
 /////////////////////////////////////////////////////////////////////////////

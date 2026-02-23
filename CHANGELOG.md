@@ -6,14 +6,23 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
 
+# [Version 1.6.0](https://github.com/eclipse/paho.mqtt.cpp/compare/v1.5.3..v1.6.0) (2026-02-23)
+
+- Bumped Paho C submodule to v1.3.16 and updated directory name to externals/paho.mqtt.c
+    - Some significant performance increases (lower latency) for connect and publish
 - Fixed `topic_matcher` and `topic_filter` to properly match parent with multi-level ('#') wildcard.
 - Slight optimization of `topic_filter` to do simple string comparison if the filter does not contain wildcards.
+- [#80](https://github.com/eclipse-paho/paho.mqtt.cpp/issues/80) Set a minimum version for Paho C in the CMake file. Report the version found.
+- [#360](https://github.com/eclipse-paho/paho.mqtt.cpp/issues/360) .deb version properly set, and add architecture name to .deb file
+- [#555](https://github.com/eclipse-paho/paho.mqtt.cpp/pull/555) remove const from connect_options_builder 'move' constructor
 - [#556](https://github.com/eclipse-paho/paho.mqtt.cpp/pull/556) fix potential deadlock in `thread_queue` on capacity increase.
+- [#557](https://github.com/eclipse-paho/paho.mqtt.cpp/pull/557) Incorrect default retain value in a will options constructor
 - [#559](https://github.com/eclipse-paho/paho.mqtt.cpp/pull/559) prevent undefined behaviour on empty topic matching
+- [#571](https://github.com/eclipse-paho/paho.mqtt.cpp/issues/571) Sync reconnect example crashes on first reconnect
 
-## [Version 1.5.3](https://github.com/eclipse/paho.mqtt.cpp/compare/v1.5.2..v1.5.3) (2025-05-15)
+
+# [Version 1.5.3](https://github.com/eclipse/paho.mqtt.cpp/compare/v1.5.2..v1.5.3) (2025-05-15)
 
 - Fix the bundled Paho C build foc C23 compilers by forcing C99 compliance in CMake build
 - [#544](https://github.com/eclipse-paho/paho.mqtt.cpp/pull/544) and [#550](https://github.com/eclipse-paho/paho.mqtt.cpp/pull/550) Use std::vector<unsigned char> for the ALPN protocol list in wire format
