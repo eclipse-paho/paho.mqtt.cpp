@@ -83,6 +83,40 @@ if(PAHO_BUILD_SHARED)
     endif()
 endif()
 
+# On Windows with shared libraries, copy DLLs next to the test binary so that
+# it can run (both for catch_discover_tests and when running ctest directly).
+if(WIN32 AND PAHO_BUILD_SHARED)
+    if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.21")
+        add_custom_command(TARGET unit_tests POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:unit_tests>
+                $<TARGET_RUNTIME_DLLS:unit_tests>
+            COMMAND_EXPAND_LISTS
+        )
+    else()
+        # Fallback for CMake < 3.21: copy known DLL targets manually.
+        set(_paho_dlls $<TARGET_FILE:paho-mqttpp3-shared>)
+        if(PAHO_WITH_MQTT_C)
+            if(PAHO_WITH_SSL)
+                list(APPEND _paho_dlls $<TARGET_FILE:paho-mqtt3as>)
+            else()
+                list(APPEND _paho_dlls $<TARGET_FILE:paho-mqtt3a>)
+            endif()
+        else()
+            message(WARNING
+                "CMake 3.21+ is recommended to automatically copy all runtime "
+                "DLL dependencies for unit tests. With CMake ${CMAKE_VERSION}, "
+                "only the paho-mqttpp3 DLL will be copied automatically. "
+                "Ensure the paho MQTT C DLLs are in PATH for tests to run."
+            )
+        endif()
+        add_custom_command(TARGET unit_tests POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                ${_paho_dlls}
+                $<TARGET_FILE_DIR:unit_tests>
+        )
+    endif()
+endif()
+
 include(CTest)
 include(Catch)
 
