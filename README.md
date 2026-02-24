@@ -24,30 +24,29 @@ The library has the following features:
 - Blocking and non-blocking APIs
 - Modern C++ interface (C++17)
 
-This code requires the [Paho C library](https://github.com/eclipse/paho.mqtt.c) by Ian Craggs, et al., specifically version 1.3.14 or possibly later.
+This code requires the [Paho C library](https://github.com/eclipse/paho.mqtt.c) by Ian Craggs, et al., specifically version 1.3.16 or possibly later.
 
 ## Latest News
 
 To keep up with the latest announcements for this project, or to ask questions:
 
+**Mastodon:** [@fpagliughi@fosstodon.org](https://fosstodon.org/@fpagliughi)
+
 **Email:** [Eclipse Paho Mailing List](https://accounts.eclipse.org/mailing-list/paho-dev)
 
-### What's New in v1.5.x
+### What's New in v1.6.x
 
-The latest updates for v1.5 moved the codebase to C++17 and added support for UNIX-domain sockets. They also fixed a number of build issues, now targeting the latest Paho C release, v1.3.14.
+The v1.6.x is tested and builds around the latest Paho C v1.3.16, which has a number of performance enhancements and reduces a number of latency issues in connecting and publishing. Some additional updates:
 
-The primary changes in the v1.5 versions are:
-
-- Updated the code base to C++17
-- Support for the Paho C v1.3.14 release.
-    - Support for UNIX-domain sockets
-- Reorganize and reformat the sources and added a .clang-format capability.
-- Create universal client instances that can connect using v3 or v5. (i.e. no more instances that are only v3 capable)
-- Bump the CMake to v3.13
-- Fix a large number of CMake build issues
-- Updated the GitHub CI
-- (v1.5.3) Fixes for building this library and the Paho C library with the latest C & C++ compilers, like Clang 20 and GCC 15 which created some breaking hcanges for legacy code.
-- (v1.5.4) Fixes for `topic_matcher` and `topic_filter` to match against parent with the multi-field wildcard.
+- Bumped Paho C submodule to v1.3.16 and updated directory name to externals/paho.mqtt.c
+    - Some significant performance increases (lower latency) for connect and publish
+- Fixes to topic matching:
+    - Fixed `topic_matcher` and `topic_filter` to properly match parent with multi-level ('#') wildcard.
+    - Slight optimization of `topic_filter` to do simple string comparison if the filter does not contain wildcards.
+    - Prevent undefined behaviour on empty topic matching
+- Set a minimum version for Paho C in the CMake file.
+- Debian .deb file properly versioned, and adds the architecture to the .deb file name.
+- Fixed post-reconnect crash in the sync `client`
 
 For the full list of updates in each release, see the [CHANGELOG](https://github.com/eclipse-paho/paho.mqtt.cpp/blob/master/CHANGELOG.md).
 
@@ -73,7 +72,7 @@ _CMake_  is a cross-platform build system suitable for Unix and non-Unix platfor
 
 * cmake v3.13
 
-The Paho C++ library requires the Paho C library, v1.3.14 or greater to be built and installed. That can be done before building this library, or it can be done here using the CMake `PAHO_WITH_MQTT_C` build option to build both libraries at the same time. This also guarantees that a proper version of the C library is used, and that it is build with compatible options.
+The Paho C++ library requires the Paho C library, v1.3.16 or greater to be built and installed. That can be done before building this library, or it can be done here using the CMake `PAHO_WITH_MQTT_C` build option to build both libraries at the same time. This also guarantees that a proper version of the C library is used, and that it is build with compatible options.
 
 ### Build Options
 
@@ -102,10 +101,9 @@ This requires the CMake option `PAHO_WITH_MQTT_C` set.
 ```
 $ git clone https://github.com/eclipse/paho.mqtt.cpp
 $ cd paho.mqtt.cpp
-$ git co v1.5.4
+$ git co v1.6.0
 
-$ git submodule init
-$ git submodule update
+$ git submodule update --init
 
 $ cmake -Bbuild -H. -DPAHO_WITH_MQTT_C=ON -DPAHO_BUILD_EXAMPLES=ON
 $ sudo cmake --build build/ --target install
@@ -130,7 +128,7 @@ On Debian based systems this would mean that the following packages have to be i
 $ sudo apt-get install build-essential gcc make cmake
 ```
 
-If you will be using secure sockets (and you probably should if you're sending messages across a public netwok):
+If you will be using secure sockets (and you probably should if you're sending messages across a public network):
 
 ```
 $ sudo apt-get install libssl-dev
@@ -148,13 +146,13 @@ _Catch2_ can be found here: [Catch2](https://github.com/catchorg/Catch2).  You m
 
 #### Building the Paho C library
 
-The Paho C library can be built automatically when building this library by enabling the CMake build option, `PAHO_WITH_MQTT_C`. That will build and install the Paho C library from a Git submodule, using a known-good version, and the proper build configuration for the C++ library. But iIf you want to manually specify the build configuration of the Paho C library or use a different version, then it must be built and installed before building the C++ library. Note, this version of the C++ library requires Paho C v1.3.14 or greater.
+The Paho C library can be built automatically when building this library by enabling the CMake build option, `PAHO_WITH_MQTT_C`. That will build and install the Paho C library from a Git submodule, using a known-good version, and the proper build configuration for the C++ library. But iIf you want to manually specify the build configuration of the Paho C library or use a different version, then it must be built and installed before building the C++ library. Note, this version of the C++ library requires Paho C v1.3.16 or greater.
 
 To download and build the Paho C library:
 
     $ git clone https://github.com/eclipse/paho.mqtt.c.git
     $ cd paho.mqtt.c
-    $ git checkout v1.3.14
+    $ git checkout v1.3.16
 
     $ cmake -Bbuild -H. -DPAHO_ENABLE_TESTING=OFF -DPAHO_WITH_SSL=ON -DPAHO_HIGH_PERFORMANCE=ON
     $ sudo cmake --build build/ --target install
@@ -175,9 +173,8 @@ If the Paho C library is not already installed, the recommended version can be b
 
     $ git clone https://github.com/eclipse/paho.mqtt.cpp
     $ cd paho.mqtt.cpp
-    $ git co v1.5.4
-    $ git submodule init
-    $ git submodule update
+    $ git co v1.6.0
+    $ git submodule update --init
 
     $ cmake -Bbuild -H. -DPAHO_WITH_MQTT_C=ON -DPAHO_BUILD_EXAMPLES=ON
     $ sudo cmake --build build/ --target install
