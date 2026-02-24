@@ -85,24 +85,24 @@ jobs:
 #        cmake --build . --target install
 #        "C:\Program Files\mosquitto\mosquitto install"
 
-    - name: Install Catch2 v2 from Source (ubuntu, macos)
+    - name: Install Catch2 v3 from Source (ubuntu, macos)
       if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
       run: |
         git clone https://github.com/catchorg/Catch2.git
         cd Catch2
-        git checkout "v2.13.8"
+        git checkout "v3.13.0"
         mkdir build && cd build
         cmake .. -DBUILD_TESTING=OFF -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
         sudo cmake --build . --target install
 
-    - name: Install Catch2 v2 from Source (windows)
+    - name: Install Catch2 v3 from Source (windows)
       # For Windows, it's important to build Catch2 with the same 'build_type'
       # as the Paho C++ library, so that they link without errors.
       if: matrix.os == 'windows-latest'
       run: |
         git clone https://github.com/catchorg/Catch2.git
         cd Catch2
-        git checkout "v2.13.8"
+        git checkout "v3.13.0"
         mkdir build && cd build
         cmake .. -DBUILD_TESTING=OFF -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
         cmake --build . --config ${{ matrix.build_type }} --target install
