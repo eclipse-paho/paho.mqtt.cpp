@@ -26,7 +26,7 @@ jobs:
       #
       # To add more build types (Release, Debug, RelWithDebInfo, etc.) customize the build_type list.
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest, macos-latest, windows-latest]
         build_type: [Release, Debug]
         c_compiler: [gcc, clang, cl]
         include:
@@ -39,12 +39,19 @@ jobs:
           - os: ubuntu-latest
             c_compiler: clang
             cpp_compiler: clang++
+          - os: macos-latest
+            c_compiler: clang
+            cpp_compiler: clang++
         exclude:
           - os: windows-latest
             c_compiler: gcc
           - os: windows-latest
             c_compiler: clang
           - os: ubuntu-latest
+            c_compiler: cl
+          - os: macos-latest
+            c_compiler: gcc
+          - os: macos-latest
             c_compiler: cl
 
     steps:
@@ -59,6 +66,12 @@ jobs:
         sudo apt-get update
         sudo apt-get -y install mosquitto
 
+    - name: Install Mosquitto (macos)
+      if: matrix.os == 'macos-latest'
+      run: |
+        brew install mosquitto
+        $(brew --prefix)/sbin/mosquitto -d
+
 # TODO: Figure out how to install and run mosquitto on Windows for unit tests.
 
 #    - name: Install Mosquitto from Source (windows)
@@ -72,8 +85,8 @@ jobs:
 #        cmake --build . --target install
 #        "C:\Program Files\mosquitto\mosquitto install"
 
-    - name: Install Catch2 v2 from Source (ubuntu)
-      if: matrix.os == 'ubuntu-latest'
+    - name: Install Catch2 v2 from Source (ubuntu, macos)
+      if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
       run: |
         git clone https://github.com/catchorg/Catch2.git
         cd Catch2
@@ -125,7 +138,7 @@ jobs:
       run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
 
     - name: Test
-      if: matrix.os == 'ubuntu-latest'
+      if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
       working-directory: ${{ steps.strings.outputs.build-output-dir }}
       # Execute tests defined by the CMake configuration. 
       # Note that --build-config is needed because the default Windows generator
