@@ -300,8 +300,8 @@ public:
     /**
      * Subscribe to a topic, which may include wildcards using a QoS of 1.
      * @param topicFilter A single topic to subscribe
-maked      * @param props The MQTT v5 properties.
      * @param opts The MQTT v5 subscribe options for the topic
+     * @param props The MQTT v5 properties.
      * @return The "subscribe" response from the server.
      */
     virtual subscribe_response subscribe(

@@ -500,8 +500,7 @@ public:
     }
     /**
      * Inserts a new value into the collection.
-     * @param key The topic/filter entry
-     * @param val The value to associate with that entry.
+     * @param val The value to insert (topic/filter and associated value).
      */
     void insert(const value_type& val) {
         value_type v{val};

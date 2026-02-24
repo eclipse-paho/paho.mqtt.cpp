@@ -203,6 +203,7 @@ public:
      *  		  values are 0, 1 or 2.
      * @param retained Whether or not this message should be retained by the
      *  			   server.
+     * @param props The MQTT v5 properties for the message.
      * @return token used to track and wait for the publish to complete. The
      *  	   token will be passed to callback methods if set.
      */
@@ -246,6 +247,7 @@ public:
      *  		  values are 0, 1 or 2.
      * @param retained whether or not this message should be retained by the
      *  			   server.
+     * @param props The MQTT v5 properties for the message.
      * @return token used to track and wait for the publish to complete. The
      *  	   token will be passed to callback methods if set.
      */
@@ -459,7 +461,7 @@ public:
      * Determines if the consumer queue has been closed.
      * Once closed, any events in the queue can still be read, but no new
      * events can be added to it.
-     * @return @true if the consumer queue has been closed, @false
+     * @return @em true if the consumer queue has been closed, @em false
      *         otherwise.
      */
     virtual bool consumer_closed() noexcept { return false; }
@@ -467,7 +469,7 @@ public:
      * Determines if the consumer queue is "done" (closed and empty).
      * Once the queue is done, no more events can be added or removed from
      * the queue.
-     * @return @true if the consumer queue is closed and empty, @false
+     * @return @em true if the consumer queue is closed and empty, @em false
      *         otherwise.
      */
     virtual bool consumer_done() noexcept { return false; }

@@ -381,7 +381,7 @@ public:
     /**
      * Determines if the reference is valid.
      * If the reference is invalid then it is not safe to call @em any
-     * member functions other than @ref is_null() and @ref empty()
+     * member functions other than @em is_null() and @em empty()
      * @return @em true if referring to a valid buffer, @em false if the
      *  	   reference (pointer) is null.
      */

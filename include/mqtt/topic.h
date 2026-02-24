@@ -208,7 +208,7 @@ using const_topic_ptr = topic::const_ptr_t;
  *
  * This is simple class for individual topics. For a collection of topics
  * mapped to arbitrary values, like queues or callback functions, for
- * processing incoming messages, consider the @ref topic_mapper.
+ * processing incoming messages, consider the @ref topic_matcher.
  */
 class topic_filter
 {

@@ -702,8 +702,7 @@ public:
     }
     /**
      * Creates the default options for an MQTT v5 connection using
-     * WebSockets
-     * .
+     * WebSockets.
      * The keepalive interval is set to 45 seconds to avoid webserver 60
      * second inactivity timeouts.
      *

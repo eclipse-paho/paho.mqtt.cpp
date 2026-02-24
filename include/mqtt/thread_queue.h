@@ -185,7 +185,7 @@ public:
      * Once closed, the queue will not accept any new items, but receievers
      * will still be able to get any remaining items out of the queue until
      * it is empty.
-     * @return @em true if the queue is closed, @false otherwise.
+     * @return @em true if the queue is closed, @em false otherwise.
      */
     bool closed() const {
         guard g{lock_};
@@ -195,7 +195,7 @@ public:
      * Determines if all possible operations are done on the queue.
      * If the queue is closed and empty, then no further useful operations
      * can be done on it.
-     * @return @true if the queue is closed and empty, @em false otherwise.
+     * @return @em true if the queue is closed and empty, @em false otherwise.
      */
     bool done() const {
         guard g{lock_};

@@ -405,6 +405,7 @@ inline message_ptr make_message(string_ref topic, const void* payload, size_t le
  * @param payload A buffer to use as the message payload.
  * @param qos The quality of service for the message.
  * @param retained Whether the message should be retained by the broker.
+ * @param props The MQTT v5 properties for the message.
  */
 inline message_ptr make_message(
     string_ref topic, binary_ref payload, int qos, bool retained,

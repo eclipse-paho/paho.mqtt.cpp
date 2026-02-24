@@ -195,13 +195,6 @@ TAB_SIZE               = 4
 
 ALIASES                =
 
-# This tag can be used to specify a number of word-keyword mappings (TCL only).
-# A mapping has the form "name=value". For example adding
-# "class=itcl::class" will allow you to use the command class in the
-# itcl::class meaning.
-
-TCL_SUBST              =
-
 # Set the OPTIMIZE_OUTPUT_FOR_C tag to YES if your project consists of C
 # sources only. Doxygen will then generate output that is more tailored for C.
 # For instance, some of the names that are used will be different. The list
@@ -833,12 +826,6 @@ VERBATIM_HEADERS       = YES
 
 ALPHABETICAL_INDEX     = YES
 
-# If the alphabetical index is enabled (see ALPHABETICAL_INDEX) then
-# the COLS_IN_ALPHA_INDEX tag can be used to specify the number of columns
-# in which this list will be split (can be a number in the range [1..20])
-
-COLS_IN_ALPHA_INDEX    = 5
-
 # In case all classes in a project start with a common prefix, all
 # classes will be put under the same header in the alphabetical index.
 # The IGNORE_PREFIX tag can be used to specify one or more prefixes that
@@ -928,12 +915,6 @@ HTML_COLORSTYLE_SAT    = 100
 # and 100 does not change the gamma.
 
 HTML_COLORSTYLE_GAMMA  = 80
-
-# If the HTML_TIMESTAMP tag is set to YES then the footer of each generated HTML
-# page will contain the date and time when the page was generated. Setting
-# this to NO can help when comparing the output of multiple runs.
-
-HTML_TIMESTAMP         = YES
 
 # If the HTML_ALIGN_MEMBERS tag is set to YES, the members of classes,
 # files or namespaces will be aligned in HTML using tables. If set to
@@ -1151,14 +1132,6 @@ EXT_LINKS_IN_WINDOW    = NO
 
 FORMULA_FONTSIZE       = 10
 
-# Use the FORMULA_TRANPARENT tag to determine whether or not the images
-# generated for formulas are transparent PNGs. Transparent PNGs are
-# not supported properly for IE 6.0, but are supported on all modern browsers.
-# Note that when changing this option you need to delete any form_*.png files
-# in the HTML output before the changes have effect.
-
-FORMULA_TRANSPARENT    = YES
-
 # Enable the USE_MATHJAX option to render LaTeX formulas using MathJax
 # (see http://www.mathjax.org) which uses client side Javascript for the
 # rendering instead of using prerendered bitmaps. Use this if you do not
@@ -1289,13 +1262,6 @@ LATEX_BATCHMODE        = NO
 # in the output.
 
 LATEX_HIDE_INDICES     = NO
-
-# If LATEX_SOURCE_CODE is set to YES then doxygen will include
-# source code with syntax highlighting in the LaTeX output.
-# Note that which sources are shown also depends on other settings
-# such as SOURCE_BROWSER.
-
-LATEX_SOURCE_CODE      = NO
 
 # The LATEX_BIB_STYLE tag can be used to specify the style to use for the
 # bibliography, e.g. plainnat, or ieeetr. The default style is "plain". See
@@ -1561,31 +1527,9 @@ ALLEXTERNALS           = NO
 
 EXTERNAL_GROUPS        = YES
 
-# The PERL_PATH should be the absolute path and name of the perl script
-# interpreter (i.e. the result of `which perl').
-
-PERL_PATH              = /usr/bin/perl
-
 #---------------------------------------------------------------------------
 # Configuration options related to the dot tool
 #---------------------------------------------------------------------------
-
-# If the CLASS_DIAGRAMS tag is set to YES (the default) Doxygen will
-# generate a inheritance diagram (in HTML, RTF and LaTeX) for classes with base
-# or super classes. Setting the tag to NO turns the diagrams off. Note that
-# this option also works with HAVE_DOT disabled, but it is recommended to
-# install and use dot, since it yields more powerful graphs.
-
-CLASS_DIAGRAMS         = YES
-
-# You can define message sequence charts within doxygen comments using the \msc
-# command. Doxygen will then run the mscgen tool (see
-# http://www.mcternan.me.uk/mscgen/) to produce the chart and insert it in the
-# documentation. The MSCGEN_PATH tag allows you to specify the directory where
-# the mscgen tool resides. If left empty the tool is assumed to be found in the
-# default search path.
-
-MSCGEN_PATH            =
 
 # If set to YES, the inheritance and collaboration graphs will hide
 # inheritance and usage relations if the target is undocumented
@@ -1608,22 +1552,8 @@ HAVE_DOT               = NO
 
 DOT_NUM_THREADS        = 0
 
-# By default doxygen will use the Helvetica font for all dot files that
-# doxygen generates. When you want a differently looking font you can specify
-# the font name using DOT_FONTNAME. You need to make sure dot is able to find
-# the font, which can be done by putting it in a standard location or by setting
-# the DOTFONTPATH environment variable or by setting DOT_FONTPATH to the
-# directory containing the font.
-
-DOT_FONTNAME           = Helvetica
-
-# The DOT_FONTSIZE tag can be used to set the size of the font of dot graphs.
-# The default size is 10pt.
-
-DOT_FONTSIZE           = 10
-
-# By default doxygen will tell dot to use the Helvetica font.
-# If you specify a different font using DOT_FONTNAME you can use DOT_FONTPATH to
+# By default doxygen will tell dot to use the default font.
+# If you want a different font you can use DOT_FONTPATH to
 # set the path where dot can find it.
 
 DOT_FONTPATH           =
@@ -1753,14 +1683,6 @@ DOT_GRAPH_MAX_NODES    = 50
 # DOT_GRAPH_MAX_NODES. Using a depth of 0 means no depth restriction.
 
 MAX_DOT_GRAPH_DEPTH    = 0
-
-# Set the DOT_TRANSPARENT tag to YES to generate images with a transparent
-# background. This is disabled by default, because dot on Windows does not
-# seem to support this out of the box. Warning: Depending on the platform used,
-# enabling this option may lead to badly anti-aliased labels on the edges of
-# a graph (i.e. they become hard to read).
-
-DOT_TRANSPARENT        = NO
 
 # Set the DOT_MULTI_TARGETS tag to YES allow dot to generate multiple output
 # files in one run (i.e. multiple -o and -T options on the command line). This
