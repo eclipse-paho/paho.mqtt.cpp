@@ -28,13 +28,15 @@ namespace mqtt {
 ssl_options::ssl_options(
     const string& trustStore, const string& keyStore, const string& privateKey,
     const string& privateKeyPassword, const string& enabledCipherSuites,
-    bool enableServerCertAuth, const std::vector<string> alpnProtos /*=std::vector<string>()*/
+    bool enableServerCertAuth, const std::vector<string> alpnProtos, /*=std::vector<string>()*/
+    const string& providerName
 )
     : trustStore_(trustStore),
       keyStore_(keyStore),
       privateKey_(privateKey),
       privateKeyPassword_(privateKeyPassword),
-      enabledCipherSuites_(enabledCipherSuites)
+      enabledCipherSuites_(enabledCipherSuites),
+      providerName_(providerName)
 {
     set_alpn_protos(alpnProtos);
     update_c_struct();
@@ -44,14 +46,16 @@ ssl_options::ssl_options(
 ssl_options::ssl_options(
     const string& trustStore, const string& keyStore, const string& privateKey,
     const string& privateKeyPassword, const string& caPath, const string& enabledCipherSuites,
-    bool enableServerCertAuth, const std::vector<string> alpnProtos /*=std::vector<string>()*/
+    bool enableServerCertAuth, const std::vector<string> alpnProtos, /*=std::vector<string>()*/
+    const string& providerName
 )
     : trustStore_(trustStore),
       keyStore_(keyStore),
       privateKey_(privateKey),
       privateKeyPassword_(privateKeyPassword),
       caPath_(caPath),
-      enabledCipherSuites_(enabledCipherSuites)
+      enabledCipherSuites_(enabledCipherSuites),
+      providerName_(providerName)
 {
     set_alpn_protos(alpnProtos);
     update_c_struct();
@@ -68,7 +72,8 @@ ssl_options::ssl_options(const ssl_options& other)
       enabledCipherSuites_(other.enabledCipherSuites_),
       errHandler_(other.errHandler_),
       pskHandler_(other.pskHandler_),
-      protos_(other.protos_)
+      protos_(other.protos_),
+      providerName_(other.providerName_)
 {
     update_c_struct();
 }
@@ -83,7 +88,8 @@ ssl_options::ssl_options(ssl_options&& other)
       enabledCipherSuites_(std::move(other.enabledCipherSuites_)),
       errHandler_(std::move(other.errHandler_)),
       pskHandler_(std::move(other.pskHandler_)),
-      protos_(std::move(other.protos_))
+      protos_(std::move(other.protos_)),
+      providerName_(std::move(other.providerName_))
 {
     update_c_struct();
 }
@@ -123,6 +129,11 @@ void ssl_options::update_c_struct()
         opts_.protos = nullptr;
         opts_.protos_len = 0;
     }
+	if (!providerName_.empty()) {
+		opts_.providerName = c_str(providerName_);
+	} else {
+		opts_.providerName = nullptr;
+	}
 }
 
 // --------------------------------------------------------------------------
@@ -195,6 +206,7 @@ ssl_options& ssl_options::operator=(const ssl_options& rhs)
     pskHandler_ = rhs.pskHandler_;
 
     protos_ = rhs.protos_;
+    providerName_ = rhs.providerName_;
 
     update_c_struct();
     return *this;
@@ -218,6 +230,7 @@ ssl_options& ssl_options::operator=(ssl_options&& rhs)
     pskHandler_ = std::move(rhs.pskHandler_);
 
     protos_ = std::move(rhs.protos_);
+    providerName_ = std::move(rhs.providerName_);
 
     update_c_struct();
     return *this;
@@ -339,6 +352,12 @@ void ssl_options::set_alpn_protos(const std::vector<string>& protos)
         opts_.protos = nullptr;
         opts_.protos_len = 0;
     }
+}
+
+void ssl_options::set_provider_name(const string& name)
+{
+	providerName_ = name;
+	opts_.providerName = c_str(providerName_);
 }
 
 /////////////////////////////////////////////////////////////////////////////
