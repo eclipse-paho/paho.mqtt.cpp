@@ -1,8 +1,9 @@
 Summary:            MQTT CPP Client
 Name:               paho-cpp
-Version:            1.2.0
-Release:            1%{?dist}
-License:            BSD and EPL-1.0
+Version:            1.6.0
+Release:            0%{?dist}
+License:            Eclipse Eclipse Public License 2.0 and Distribution License 1.0
+Group:              Development/Tools
 Source:             https://github.com/eclipse/paho.mqtt.cpp/archive/v%{version}/%{name}-%{version}.tar.gz
 URL:                https://eclipse.org/paho/clients/cpp/
 BuildRequires:      cmake3
@@ -12,11 +13,11 @@ BuildRequires:      doxygen
 BuildRequires:      openssl-devel
 BuildRequires:      paho-c-devel
 Requires:           openssl
-Requires:           paho-c >= 1.3.8
+Requires:           paho-c >= 1.3.16
 
 
 %description
-Paho MQTT CPP is a fully fledged MQTT client written in ANSI standard C++ 11.
+The Paho MQTT CPP Client is a full MQTT client written in ANSI standard C++ 17.
 
 
 %package devel
@@ -40,8 +41,9 @@ Development documentation and code samples for the the Paho MQTT CPP Client.
 sed -i'' 's|lib/cmake|%{_lib}/cmake|' cmake/CMakeLists.txt
 
 %build
-%cmake -DPAHO_WITH_SSL=TRUE -DPAHO_BUILD_DOCUMENTATION=TRUE
-%cmake_build
+mkdir build.paho.cpp && cd build.paho.cpp
+%cmake3 -DPAHO_WITH_SSL=TRUE -DPAHO_BUILD_DOCUMENTATION=TRUE -DPAHO_BUILD_EXAMPLES=TRUE ..
+make %{?_smp_mflags}
 
 %install
 %cmake_install
@@ -53,8 +55,8 @@ cp -a src/samples/*.cpp %{buildroot}%{_docdir}/%{name}/samples/
 mv %{buildroot}%{_docdir}/html %{buildroot}%{_docdir}/%{name}/html
 
 %files
-%license edl-v10 epl-v10
-%{_libdir}/libpaho-mqttpp3.so.1*
+%doc edl-v10 epl-v20
+%{_libdir}/*
 
 %files devel
 %license edl-v10 epl-v10

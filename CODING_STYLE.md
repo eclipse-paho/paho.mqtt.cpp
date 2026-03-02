@@ -18,13 +18,13 @@ The Paho C++ library attempts to follow the naming conventions of the C++ standa
  - Class names are lower snake case:  *classes_like_this*
  - Function names are lower snake case:  *functions_like_this*
  - Variable names are lower camel case:  *varsLikeThis*
- - Class memeber are lower camel case with a trailing underscore: *memVarsLikeThis_*
+ - Class members are lower camel case with a trailing underscore: *memVarsLikeThis_*
  - Constants are all caps: *CONSTANTS_LIKE_THIS*
- 
+
 ## Format Conventions
 
-The top-level project directory contains a _.editorconfig_ file with some basic hints as to formatting conventions for source files. 
+The top-level project directory contains a _.editorconfig_ file with some basic hints as to formatting conventions for source files.
 
-A few minutes looking through the existing sources will reveal the basic styles used. Pull Requests should generally try to fit in to the existing style and not try to impose new ones. 
+A few minutes looking through the existing sources will reveal the basic styles used. Pull Requests should generally try to fit in to the existing style and not try to impose new ones.
 
-At some point in the future, a formatter may be added to the project (probably Clang format), but until then, any sources that can be fixed up with an automated code generator or beautifier would generally be accepted into the project. But at some point soon after would then be reformat to fit into the overall conventions. 
+At some point in the future, a formatter may be added to the project (probably Clang format), but until then, any sources that can be fixed up with an automated code generator or beautifier would generally be accepted into the project. But at some point soon after would then be reformat to fit into the overall conventions.

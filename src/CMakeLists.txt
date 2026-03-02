@@ -7,14 +7,14 @@
 
 #*******************************************************************************
 # Copyright (c) 2016-2017, Guilherme Maciel Ferreira
-# Copyright (c) 2017-2018, Frank Pagliughi
+# Copyright (c) 2017-2024, Frank Pagliughi
 #
 #  All rights reserved. This program and the accompanying materials
-#  are made available under the terms of the Eclipse Public License v1.0
+#  are made available under the terms of the Eclipse Public License v2.0
 #  and Eclipse Distribution License v1.0 which accompany this distribution. 
 # 
 #  The Eclipse Public License is available at 
-#     http://www.eclipse.org/legal/epl-v10.html
+#     http://www.eclipse.org/legal/epl-v20.html
 #  and the Eclipse Distribution License is available at 
 #    http://www.eclipse.org/org/documents/edl-v10.php.
 # 
@@ -23,124 +23,139 @@
 #     Frank Pagliughi - made the shared library optional
 #*******************************************************************************/
 
-find_package(PahoMqttC REQUIRED)
-
-# --- The headers ---
-
-add_subdirectory(mqtt)
-
 ## --- Library dependencies ---
 
 set (THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
-#set(LIBS_SYSTEM Threads::Threads)
-#if(WIN32)
-#    string(APPEND LIBS_SYSTEM " ws2_32")
-#endif()
+include(GenerateExportHeader)
 
 ## --- Use object library to optimize compilation ---
 
-add_library(paho-cpp-objs OBJECT
-  async_client.cpp
-  client.cpp
-  connect_options.cpp
-  create_options.cpp    
-  disconnect_options.cpp
-  iclient_persistence.cpp
-  message.cpp
-  properties.cpp
-  response_options.cpp
-  ssl_options.cpp
-  string_collection.cpp
-  subscribe_options.cpp
-  token.cpp
-  topic.cpp
-  will_options.cpp
+set(COMMON_SRC
+    async_client.cpp
+    client.cpp
+    connect_options.cpp
+    create_options.cpp    
+    disconnect_options.cpp
+    iclient_persistence.cpp
+    message.cpp
+    properties.cpp
+    reason_code.cpp
+    response_options.cpp
+    server_response.cpp
+    ssl_options.cpp
+    string_collection.cpp
+    token.cpp
+    topic.cpp
+    will_options.cpp
 )
-
-## install the shared library
-#install(TARGETS paho-cpp-objs EXPORT PahoMqttCpp
-#    OBJECTS DESTINATION ${CMAKE_INSTALL_LIBDIR}
-#)
-
-# Object libraries can't use target_link_libraries in order to take advantage
-# of transitive usage requirements until CMake 3.12. This is a workaround:
-#target_include_directories(OBJS PRIVATE ${PAHO_MQTT_C_INCLUDE_DIRS})
-
-target_include_directories(paho-cpp-objs 
-    PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-        $<INSTALL_INTERFACE:include>
-    PRIVATE 
-        ${PAHO_MQTT_C_INCLUDE_DIRS}
-        src
-)
-
 
 ## --- Build the shared library, if requested ---
 
 if(PAHO_BUILD_SHARED)
-    ## create the shared library
-    add_library(paho-mqttpp3 SHARED $<TARGET_OBJECTS:paho-cpp-objs>)
+    message(STATUS "Creating shared library")
 
-    ## add dependencies to the shared library
-    target_link_libraries(paho-mqttpp3
-        PRIVATE ${LIBS_SYSTEM}
-        PUBLIC PahoMqttC::PahoMqttC Threads::Threads)
+    ## Create the shared library
+    add_library(paho-mqttpp3-shared SHARED ${COMMON_SRC})
+    list(APPEND PAHO_CPP_TARGETS paho-mqttpp3-shared)
 
-    # It would be nice to exort the include paths from the obj lib, but we
-    # get an export error. Perhaps in a future version?
-    # 
-    # CMake Error: install(EXPORT "PahoMqttCpp" ...) includes target "paho-mqttpp3"
-    #   which requires target "paho-cpp-objs" that is not in the export set.
+    ## Alias for subdirectory builds
+    add_library(PahoMqttCpp::paho-mqttpp3-shared ALIAS paho-mqttpp3-shared)
+    add_library(PahoMqttCpp::paho-mqttpp3 ALIAS paho-mqttpp3-shared)
 
-    #target_include_directories(paho-mqttpp3 PUBLIC 
-    #    $<TARGET_PROPERTY:paho-cpp-objs,INCLUDE_DIRECTORIES>
-    #)
+    target_compile_definitions(paho-mqttpp3-shared PRIVATE PAHO_MQTTPP_EXPORTS)
 
-    target_include_directories(paho-mqttpp3 PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-        $<INSTALL_INTERFACE:include>
+    ## Add dependencies to the shared library
+    target_link_libraries(paho-mqttpp3-shared PUBLIC
+        ${PAHO_MQTT_C_LIB}
+        Threads::Threads
+        ${LIBS_SYSTEM}
     )
 
     ## set the shared library soname
-    set_target_properties(paho-mqttpp3 PROPERTIES
+    set_target_properties(paho-mqttpp3-shared PROPERTIES
+        OUTPUT_NAME paho-mqttpp3
         VERSION ${PROJECT_VERSION}
-        SOVERSION ${PROJECT_VERSION_MAJOR})
+        SOVERSION ${PROJECT_VERSION_MAJOR}
+    )
 
-    ## install the shared library
-    install(TARGETS paho-mqttpp3 EXPORT PahoMqttCpp
-        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+    generate_export_header(paho-mqttpp3-shared
+        BASE_NAME paho_mqttpp
+        EXPORT_FILE_NAME ${PAHO_MQTTPP_GENERATED_DIR}/include/mqtt/export.h
+    )
 endif()
 
 ## --- Build static version of the library, if requested ---
 
 if(PAHO_BUILD_STATIC)
-    ## create the static library
-    add_library(paho-mqttpp3-static STATIC $<TARGET_OBJECTS:paho-cpp-objs>)
+    ## Create the static library
+    add_library(paho-mqttpp3-static STATIC ${COMMON_SRC})
+    list(APPEND PAHO_CPP_TARGETS paho-mqttpp3-static)
 
-    ## add dependencies to the shared library
-    target_link_libraries(paho-mqttpp3-static
-        PRIVATE ${LIBS_SYSTEM}
-        PUBLIC PahoMqttC::PahoMqttC Threads::Threads)
+    ## Alias for subdirectory builds
+    add_library(PahoMqttCpp::paho-mqttpp3-static ALIAS paho-mqttpp3-static)
 
-    target_include_directories(paho-mqttpp3-static PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-        $<INSTALL_INTERFACE:include>
+    ## Add dependencies to the static library
+    target_link_libraries(paho-mqttpp3-static PUBLIC 
+        ${PAHO_MQTT_C_LIB}-static
+        Threads::Threads
+        ${LIBS_SYSTEM}
     )
 
-    ## install the static library
-    install(TARGETS paho-mqttpp3-static EXPORT PahoMqttCpp
-        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+    if(${PAHO_BUILD_SHARED})
+        # This lib should configure for static exports
+        target_compile_definitions(paho-mqttpp3-static PRIVATE PAHO_MQTTPP_STATIC)
+        target_compile_definitions(paho-mqttpp3-static PRIVATE PAHO_MQTTPP_STATIC_DEFINE)
+    else()
+        # If no shared lib, make this one the default target
+        add_library(PahoMqttCpp::paho-mqttpp3 ALIAS paho-mqttpp3-static)
 
-    ## Let the archive use the same name as the shared lib on *nix systems
+        generate_export_header(paho-mqttpp3-static
+            BASE_NAME paho_mqttpp
+            EXPORT_FILE_NAME ${PAHO_MQTTPP_GENERATED_DIR}/include/mqtt/export.h
+        )
+    endif()
+
+    ## Let the archive use the same base name as the shared lib on *nix systems
     if(UNIX)
         set_target_properties(paho-mqttpp3-static PROPERTIES OUTPUT_NAME paho-mqttpp3)
     endif()
 endif()
 
+## --- Make sure at least one target was specified ---
 
+if(NOT PAHO_CPP_TARGETS)
+    message(FATAL_ERROR "No build targets are specified")
+endif()
+
+## --- Set common properties, etc ---
+
+include(GNUInstallDirs)
+
+foreach(TARGET ${PAHO_CPP_TARGETS})
+    set_target_properties(${TARGET} PROPERTIES
+        CXX_STANDARD 17
+        CXX_STANDARD_REQUIRED ON
+        CXX_EXTENSIONS OFF
+    )
+
+    ## Build warnings
+    target_compile_options(${TARGET} PRIVATE
+        $<$<CXX_COMPILER_ID:MSVC>:/W3>
+        $<$<CXX_COMPILER_ID:Clang>:-Wall -Wextra -Wdocumentation>
+        $<$<NOT:$<OR:$<CXX_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:Clang>>>:-Wall -Wextra>
+    )
+
+    target_include_directories(${TARGET} PUBLIC
+        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+    )
+
+    ## install the shared library
+    install(TARGETS ${TARGET} EXPORT PahoMqttCpp
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    )
+endforeach()

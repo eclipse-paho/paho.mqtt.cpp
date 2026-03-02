@@ -2,11 +2,26 @@
 set(PAHO_BUILD_STATIC @PAHO_BUILD_STATIC@)
 set(PAHO_BUILD_SHARED @PAHO_BUILD_SHARED@)
 set(PAHO_WITH_SSL @PAHO_WITH_SSL@)
+set(PAHO_WITH_MQTT_C @PAHO_WITH_MQTT_C@)
 
 include(CMakeFindDependencyMacro)
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR})
-find_dependency(PahoMqttC REQUIRED)
-list(REMOVE_AT CMAKE_MODULE_PATH -1)
+
 find_dependency(Threads REQUIRED)
 
-include("${CMAKE_CURRENT_LIST_DIR}/@package_name@Targets.cmake")
+if (NOT PAHO_WITH_MQTT_C)
+  find_dependency(eclipse-paho-mqtt-c REQUIRED)
+endif()
+
+if (PAHO_WITH_SSL)
+  find_dependency(OpenSSL REQUIRED)
+endif()
+
+if(NOT TARGET PahoMqttCpp::paho-mqttpp3-shared AND NOT TARGET PahoMqttCpp::paho-mqttpp3-static)
+    include("${CMAKE_CURRENT_LIST_DIR}/@package_name@Targets.cmake")
+
+    if(TARGET PahoMqttCpp::paho-mqttpp3-shared)
+        add_library(PahoMqttCpp::paho-mqttpp3 ALIAS PahoMqttCpp::paho-mqttpp3-shared)
+    else()
+        add_library(PahoMqttCpp::paho-mqttpp3 ALIAS PahoMqttCpp::paho-mqttpp3-static)
+    endif()
+endif()

@@ -7,11 +7,11 @@
  * Copyright (c) 2020 Frank Pagliughi <fpagliughi@mindspring.com>
  *
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License v2.0
  * and Eclipse Distribution License v1.0 which accompany this distribution.
  *
  * The Eclipse Public License is available at
- *    http://www.eclipse.org/legal/epl-v10.html
+ *    http://www.eclipse.org/legal/epl-v20.html
  * and the Eclipse Distribution License is available at
  *   http://www.eclipse.org/org/documents/edl-v10.php.
  *
@@ -22,9 +22,10 @@
 #define UNIT_TESTS
 
 #include <cstring>
-#include "catch2/catch.hpp"
-#include "mqtt/create_options.h"
+
+#include "catch2_version.h"
 #include "mock_async_client.h"
+#include "mqtt/create_options.h"
 
 using namespace mqtt;
 
@@ -34,19 +35,18 @@ using namespace mqtt;
 
 TEST_CASE("create_options default ctor", "[options]")
 {
-	mqtt::create_options opts;
+    mqtt::create_options opts;
 
-	REQUIRE(!opts.get_send_while_disconnected());
-	REQUIRE(!opts.get_delete_oldest_messages());
+    REQUIRE(!opts.get_send_while_disconnected());
+    REQUIRE(!opts.get_delete_oldest_messages());
 
-	REQUIRE(opts.get_restore_messages());
-	REQUIRE(opts.get_persist_qos0());
+    REQUIRE(opts.get_restore_messages());
+    REQUIRE(opts.get_persist_qos0());
 }
 
 /////////////////////////////////////////////////////////////////////////////
 //							create_options_builder
 /////////////////////////////////////////////////////////////////////////////
-
 
 // ----------------------------------------------------------------------
 // Test the default constructor
@@ -54,26 +54,25 @@ TEST_CASE("create_options default ctor", "[options]")
 
 TEST_CASE("create_options_builder default ctor", "[options]")
 {
-	const auto opts = create_options_builder()
-						.finalize();
+    const auto opts = create_options_builder().finalize();
 
-	REQUIRE(!opts.get_send_while_disconnected());
-	REQUIRE(!opts.get_delete_oldest_messages());
+    REQUIRE(!opts.get_send_while_disconnected());
+    REQUIRE(!opts.get_delete_oldest_messages());
 
-	REQUIRE(opts.get_restore_messages());
-	REQUIRE(opts.get_persist_qos0());
+    REQUIRE(opts.get_restore_messages());
+    REQUIRE(opts.get_persist_qos0());
 }
 
 TEST_CASE("create_options_builder sets", "[options]")
 {
-	const auto opts = create_options_builder()
-						.send_while_disconnected()
-						.delete_oldest_messages()
-						.finalize();
+    const auto opts = create_options_builder()
+                          .send_while_disconnected()
+                          .delete_oldest_messages()
+                          .finalize();
 
-	REQUIRE(opts.get_send_while_disconnected());
-	REQUIRE(opts.get_delete_oldest_messages());
+    REQUIRE(opts.get_send_while_disconnected());
+    REQUIRE(opts.get_delete_oldest_messages());
 
-	REQUIRE(opts.get_restore_messages());
-	REQUIRE(opts.get_persist_qos0());
+    REQUIRE(opts.get_restore_messages());
+    REQUIRE(opts.get_persist_qos0());
 }

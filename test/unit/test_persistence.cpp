@@ -8,11 +8,11 @@
  * Copyright (c) 2020 Frank Pagliughi <fpagliughi@mindspring.com>
  *
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Eclipse Public License v2.0
  * and Eclipse Distribution License v1.0 which accompany this distribution.
  *
  * The Eclipse Public License is available at
- *    http://www.eclipse.org/legal/epl-v10.html
+ *    http://www.eclipse.org/legal/epl-v20.html
  * and the Eclipse Distribution License is available at
  *   http://www.eclipse.org/org/documents/edl-v10.php.
  *
@@ -24,9 +24,10 @@
 #define UNIT_TESTS
 
 #include <cstring>
-#include "catch2/catch.hpp"
-#include "mqtt/iclient_persistence.h"
+
+#include "catch2_version.h"
 #include "mock_persistence.h"
+#include "mqtt/iclient_persistence.h"
 
 using namespace mqtt;
 
@@ -52,203 +53,256 @@ using dcp = mock_persistence;
 
 TEST_CASE("persistence", "[persistence]")
 {
-	dcp per_;
-	void* handle_;
+    dcp per_;
+    void* handle_;
+    void* context = dynamic_cast<iclient_persistence*>(&per_);
 
-	void* context = static_cast<void*>(&per_);
-	dcp::persistence_open(&handle_, CLIENT_ID, SERVER_URI, context);
+    dcp::persistence_open(&handle_, CLIENT_ID, SERVER_URI, context);
 
-	// Put no buffer
-	int bufcount = 3;
-	const char* bufs[] = { PAYLOAD, PAYLOAD2, PAYLOAD3 };
-	int buflens[] = { int(PAYLOAD_LEN), int(PAYLOAD2_LEN), int(PAYLOAD3_LEN) };
+    // Put no buffer
+    int bufcount = 3;
+    const char* bufs[] = {PAYLOAD, PAYLOAD2, PAYLOAD3};
+    int buflens[] = {int(PAYLOAD_LEN), int(PAYLOAD2_LEN), int(PAYLOAD3_LEN)};
 
-	dcp::persistence_put(handle_, const_cast<char*>(KEY), bufcount,
-						 const_cast<char**>(bufs), buflens);
+    dcp::persistence_put(
+        handle_, const_cast<char*>(KEY), bufcount, const_cast<char**>(bufs), buflens
+    );
 
-	SECTION("test persistence open") {
-		dcp per;
-		void* handle = nullptr;
+    SECTION("test persistence open")
+    {
+        dcp per;
+        void* handle = nullptr;
+        void* context = dynamic_cast<iclient_persistence*>(&per);
 
-		REQUIRE(MQTTCLIENT_PERSISTENCE_ERROR ==
-				dcp::persistence_open(&handle, CLIENT_ID, SERVER_URI, nullptr));
+        REQUIRE(
+            MQTTCLIENT_PERSISTENCE_ERROR ==
+            dcp::persistence_open(&handle, CLIENT_ID, SERVER_URI, nullptr)
+        );
 
-		REQUIRE(MQTTASYNC_SUCCESS ==
-				dcp::persistence_open(&handle, CLIENT_ID, SERVER_URI, &per));
-		REQUIRE(handle == static_cast<void*>(&per));
-	}
+        REQUIRE(
+            MQTTASYNC_SUCCESS ==
+            dcp::persistence_open(&handle, CLIENT_ID, SERVER_URI, context)
+        );
+        REQUIRE(handle == context);
+    }
 
+    // ----------------------------------------------------------------------
+    // Test static method persistence_close()
+    // ----------------------------------------------------------------------
 
-	// ----------------------------------------------------------------------
-	// Test static method persistence_close()
-	// ----------------------------------------------------------------------
+    SECTION("test persistence close")
+    {
+        dcp per;
 
-	SECTION("test persistence close") {
-		dcp per;
+        REQUIRE(MQTTCLIENT_PERSISTENCE_ERROR == dcp::persistence_close(nullptr));
 
-		REQUIRE(MQTTCLIENT_PERSISTENCE_ERROR ==
-				dcp::persistence_close(nullptr));
+        void* context = dynamic_cast<iclient_persistence*>(&per);
+        void* handle = nullptr;
+        dcp::persistence_open(&handle, CLIENT_ID, SERVER_URI, context);
 
-		void* context = static_cast<void*>(&per);
-		void* handle = nullptr;
-		dcp::persistence_open(&handle, CLIENT_ID, SERVER_URI, context);
-
-		REQUIRE(MQTTASYNC_SUCCESS == dcp::persistence_close(handle));
-	}
+        REQUIRE(MQTTASYNC_SUCCESS == dcp::persistence_close(handle));
+    }
 
     // ----------------------------------------------------------------------
     // Test static method persistence_put()
     // ----------------------------------------------------------------------
 
-    SECTION("test persistence put 0 buffer") {
-    	dcp per;
-    	void* handle;
-    	dcp::persistence_open(&handle, CLIENT_ID, SERVER_URI, &per);
+    SECTION("test persistence put 0 buffer")
+    {
+        dcp per;
+        void* handle;
+        dcp::persistence_open(
+            &handle, CLIENT_ID, SERVER_URI, dynamic_cast<iclient_persistence*>(&per)
+        );
 
-    	// Put no buffer
-    	int bufcount = 0;
-    	const char* bufs[] = { PAYLOAD };
-    	int buflens[] = { int(PAYLOAD_LEN) };
+        // Put no buffer
+        int bufcount = 0;
+        const char* bufs[] = {PAYLOAD};
+        int buflens[] = {int(PAYLOAD_LEN)};
 
-    	REQUIRE(MQTTCLIENT_PERSISTENCE_ERROR ==
-    			dcp::persistence_put(handle, const_cast<char*>(KEY), bufcount,
-    								 const_cast<char**>(bufs), buflens));
+        REQUIRE(
+            MQTTCLIENT_PERSISTENCE_ERROR ==
+            dcp::persistence_put(
+                handle, const_cast<char*>(KEY), bufcount, const_cast<char**>(bufs), buflens
+            )
+        );
     }
 
-    SECTION("persistence put 1 buffer") {
-    	dcp per;
-    	void* handle;
-    	dcp::persistence_open(&handle, CLIENT_ID, SERVER_URI, &per);
+    SECTION("persistence put 1 buffer")
+    {
+        dcp per;
+        void* handle;
+        dcp::persistence_open(
+            &handle, CLIENT_ID, SERVER_URI, dynamic_cast<iclient_persistence*>(&per)
+        );
 
-    	// Put no buffer
-    	int bufcount = 1;
-    	const char* bufs[] = { PAYLOAD };
-    	int buflens[] = { int(PAYLOAD_LEN) };
+        // Put no buffer
+        int bufcount = 1;
+        const char* bufs[] = {PAYLOAD};
+        int buflens[] = {int(PAYLOAD_LEN)};
 
-    	REQUIRE(MQTTASYNC_SUCCESS ==
-    			dcp::persistence_put(handle, const_cast<char*>(KEY), bufcount,
-    								 const_cast<char**>(bufs), buflens));
-    	REQUIRE(MQTTASYNC_SUCCESS ==
-    			dcp::persistence_containskey(handle, const_cast<char*>(KEY)));
-    	REQUIRE(MQTTCLIENT_PERSISTENCE_ERROR ==
-    			dcp::persistence_containskey(handle, const_cast<char*>(INVALID_KEY)));
+        REQUIRE(
+            MQTTASYNC_SUCCESS ==
+            dcp::persistence_put(
+                handle, const_cast<char*>(KEY), bufcount, const_cast<char**>(bufs), buflens
+            )
+        );
+        REQUIRE(
+            MQTTASYNC_SUCCESS == dcp::persistence_containskey(handle, const_cast<char*>(KEY))
+        );
+        REQUIRE(
+            MQTTCLIENT_PERSISTENCE_ERROR ==
+            dcp::persistence_containskey(handle, const_cast<char*>(INVALID_KEY))
+        );
     }
 
-    SECTION("test persistence put 2 buffers") {
-    	dcp per;
-    	void* handle;
-    	dcp::persistence_open(&handle, CLIENT_ID, SERVER_URI, &per);
+    SECTION("test persistence put 2 buffers")
+    {
+        dcp per;
+        void* handle;
+        dcp::persistence_open(
+            &handle, CLIENT_ID, SERVER_URI, dynamic_cast<iclient_persistence*>(&per)
+        );
 
-    	// Put no buffer
-    	int bufcount = 2;
-    	const char* bufs[] = { PAYLOAD, PAYLOAD2 };
-    	int buflens[] = { int(PAYLOAD_LEN), int(PAYLOAD2_LEN) };
+        // Put no buffer
+        int bufcount = 2;
+        const char* bufs[] = {PAYLOAD, PAYLOAD2};
+        int buflens[] = {int(PAYLOAD_LEN), int(PAYLOAD2_LEN)};
 
-    	REQUIRE(MQTTASYNC_SUCCESS ==
-    			dcp::persistence_put(handle, const_cast<char*>(KEY), bufcount,
-    								 const_cast<char**>(bufs), buflens));
-    	REQUIRE(MQTTASYNC_SUCCESS ==
-    			dcp::persistence_containskey(handle, const_cast<char*>(KEY)));
-    	REQUIRE(MQTTCLIENT_PERSISTENCE_ERROR ==
-    			dcp::persistence_containskey(handle, const_cast<char*>(INVALID_KEY)));
+        REQUIRE(
+            MQTTASYNC_SUCCESS ==
+            dcp::persistence_put(
+                handle, const_cast<char*>(KEY), bufcount, const_cast<char**>(bufs), buflens
+            )
+        );
+        REQUIRE(
+            MQTTASYNC_SUCCESS == dcp::persistence_containskey(handle, const_cast<char*>(KEY))
+        );
+        REQUIRE(
+            MQTTCLIENT_PERSISTENCE_ERROR ==
+            dcp::persistence_containskey(handle, const_cast<char*>(INVALID_KEY))
+        );
     }
 
-    SECTION("test persistence put 3 buffers") {
-    	REQUIRE(MQTTASYNC_SUCCESS ==
-    			dcp::persistence_containskey(handle_, const_cast<char*>(KEY)));
-    	REQUIRE(MQTTCLIENT_PERSISTENCE_ERROR ==
-    			dcp::persistence_containskey(handle_, const_cast<char*>(INVALID_KEY)));
+    SECTION("test persistence put 3 buffers")
+    {
+        REQUIRE(
+            MQTTASYNC_SUCCESS == dcp::persistence_containskey(handle_, const_cast<char*>(KEY))
+        );
+        REQUIRE(
+            MQTTCLIENT_PERSISTENCE_ERROR ==
+            dcp::persistence_containskey(handle_, const_cast<char*>(INVALID_KEY))
+        );
     }
 
-    SECTION("test persistence put empty buffers") {
-    	dcp per;
-    	void* handle;
-    	dcp::persistence_open(&handle, CLIENT_ID, SERVER_URI, &per);
+    SECTION("test persistence put empty buffers")
+    {
+        dcp per;
+        void* handle;
+        dcp::persistence_open(
+            &handle, CLIENT_ID, SERVER_URI, dynamic_cast<iclient_persistence*>(&per)
+        );
 
-    	// Put three empty buffers
-    	int bufcount = 3;
-    	const char* buffers[] = { "", "", "" };
-    	int buflens[] = { 0, 0, 0 };
-    	REQUIRE(MQTTASYNC_SUCCESS ==
-    			dcp::persistence_put(handle, const_cast<char*>(KEY),
-    								 bufcount, const_cast<char**>(buffers), buflens));
+        // Put three empty buffers
+        int bufcount = 3;
+        const char* buffers[] = {"", "", ""};
+        int buflens[] = {0, 0, 0};
+        REQUIRE(
+            MQTTASYNC_SUCCESS ==
+            dcp::persistence_put(
+                handle, const_cast<char*>(KEY), bufcount, const_cast<char**>(buffers), buflens
+            )
+        );
     }
 
     // ----------------------------------------------------------------------
     // Test static method persistence_get()
     // ----------------------------------------------------------------------
 
-    SECTION("test persistence get") {
-    	char* buf = nullptr;
-    	int buflen = 0;
-    	REQUIRE(MQTTCLIENT_PERSISTENCE_ERROR ==
-    			dcp::persistence_get(handle_, const_cast<char*>(INVALID_KEY), &buf, &buflen));
-    	REQUIRE(0 == buflen);
+    SECTION("test persistence get")
+    {
+        char* buf = nullptr;
+        int buflen = 0;
+        REQUIRE(
+            MQTTCLIENT_PERSISTENCE_ERROR ==
+            dcp::persistence_get(handle_, const_cast<char*>(INVALID_KEY), &buf, &buflen)
+        );
+        REQUIRE(0 == buflen);
 
-    	REQUIRE(MQTTASYNC_SUCCESS ==
-    			dcp::persistence_get(handle_, const_cast<char*>(KEY), &buf, &buflen));
+        REQUIRE(
+            MQTTASYNC_SUCCESS ==
+            dcp::persistence_get(handle_, const_cast<char*>(KEY), &buf, &buflen)
+        );
 
-    	int n = PAYLOAD_LEN + PAYLOAD2_LEN + PAYLOAD3_LEN;
-    	string str{PAYLOAD};
-    	str += PAYLOAD2;
-    	str += PAYLOAD3;
+        size_t n = PAYLOAD_LEN + PAYLOAD2_LEN + PAYLOAD3_LEN;
+        string str{PAYLOAD};
+        str += PAYLOAD2;
+        str += PAYLOAD3;
 
-    	REQUIRE(n == buflen);
-    	REQUIRE(buf != nullptr);
-    	REQUIRE(memcmp(str.data(), buf, n) == 0);
+        REQUIRE(int(n) == buflen);
+        REQUIRE(buf != nullptr);
+        REQUIRE(memcmp(str.data(), buf, n) == 0);
     }
 
     // ----------------------------------------------------------------------
     // Test static method persistence_remove()
     // ----------------------------------------------------------------------
 
-    SECTION("test persistence remove") {
-    	REQUIRE(MQTTCLIENT_PERSISTENCE_ERROR ==
-    			dcp::persistence_remove(handle_, const_cast<char*>(INVALID_KEY)));
-    	REQUIRE(MQTTASYNC_SUCCESS ==
-    			dcp::persistence_containskey(handle_, const_cast<char*>(KEY)));
-    	REQUIRE(MQTTASYNC_SUCCESS ==
-    			dcp::persistence_remove(handle_, const_cast<char*>(KEY)));
-    	REQUIRE(MQTTCLIENT_PERSISTENCE_ERROR ==
-    			dcp::persistence_containskey(handle_, const_cast<char*>(KEY)));
+    SECTION("test persistence remove")
+    {
+        REQUIRE(
+            MQTTCLIENT_PERSISTENCE_ERROR ==
+            dcp::persistence_remove(handle_, const_cast<char*>(INVALID_KEY))
+        );
+        REQUIRE(
+            MQTTASYNC_SUCCESS == dcp::persistence_containskey(handle_, const_cast<char*>(KEY))
+        );
+        REQUIRE(
+            MQTTASYNC_SUCCESS == dcp::persistence_remove(handle_, const_cast<char*>(KEY))
+        );
+        REQUIRE(
+            MQTTCLIENT_PERSISTENCE_ERROR ==
+            dcp::persistence_containskey(handle_, const_cast<char*>(KEY))
+        );
     }
 
     // ----------------------------------------------------------------------
     // Test static method persistence_keys()
     // ----------------------------------------------------------------------
 
-    SECTION("test persistence keys") {
-    	char** keys = nullptr;
-    	int nkeys = 0;
+    SECTION("test persistence keys")
+    {
+        char** keys = nullptr;
+        int nkeys = 0;
 
-    	REQUIRE(MQTTASYNC_SUCCESS ==
-    			dcp::persistence_keys(handle_, &keys, &nkeys));
-    	REQUIRE(1 == nkeys);
-    	REQUIRE(std::string(KEY) == std::string(keys[0]));
-    	//CPPUNIT_ASSERT(!strcmp(KEY, keys[0]));
+        REQUIRE(MQTTASYNC_SUCCESS == dcp::persistence_keys(handle_, &keys, &nkeys));
+        REQUIRE(1 == nkeys);
+        REQUIRE(std::string(KEY) == std::string(keys[0]));
+        // CPPUNIT_ASSERT(!strcmp(KEY, keys[0]));
     }
 
     // ----------------------------------------------------------------------
     // Test static method persistence_clear()
     // ----------------------------------------------------------------------
 
-    SECTION("test persistence clear") {
-    	REQUIRE(MQTTASYNC_SUCCESS ==
-    			dcp::persistence_containskey(handle_, const_cast<char*>(KEY)));
-    	REQUIRE(MQTTASYNC_SUCCESS == dcp::persistence_clear(handle_));
-    	REQUIRE(MQTTCLIENT_PERSISTENCE_ERROR ==
-    			dcp::persistence_containskey(handle_, const_cast<char*>(KEY)));
+    SECTION("test persistence clear")
+    {
+        REQUIRE(
+            MQTTASYNC_SUCCESS == dcp::persistence_containskey(handle_, const_cast<char*>(KEY))
+        );
+        REQUIRE(MQTTASYNC_SUCCESS == dcp::persistence_clear(handle_));
+        REQUIRE(
+            MQTTCLIENT_PERSISTENCE_ERROR ==
+            dcp::persistence_containskey(handle_, const_cast<char*>(KEY))
+        );
 
-    	char** keys = nullptr;
-    	int nkeys = -1;
+        char** keys = nullptr;
+        int nkeys = -1;
 
-    	REQUIRE(MQTTASYNC_SUCCESS ==
-    			dcp::persistence_keys(handle_, &keys, &nkeys));
-    	REQUIRE(0 == nkeys);
+        REQUIRE(MQTTASYNC_SUCCESS == dcp::persistence_keys(handle_, &keys, &nkeys));
+        REQUIRE(0 == nkeys);
     }
 
-	dcp::persistence_clear(handle_);
-	dcp::persistence_close(handle_);
+    dcp::persistence_clear(handle_);
+    dcp::persistence_close(handle_);
 }
-
-
