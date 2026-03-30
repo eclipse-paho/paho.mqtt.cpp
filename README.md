@@ -86,12 +86,15 @@ PAHO_WITH_SSL | TRUE (*nix), FALSE (Win32) | Whether to build SSL/TLS support in
 PAHO_BUILD_DOCUMENTATION | FALSE | Create the HTML API documentation (requires _Doxygen_)
 PAHO_BUILD_EXAMPLES | FALSE | Whether to build the example programs
 PAHO_BUILD_TESTS | FALSE | Build the unit tests. (Requires _Catch2_)
-PAHO_BUILD_DEB_PACKAGE | FALSE | Flag that configures cpack to build a Debian/Ubuntu package
+PAHO_ENABLE_CPACK | TRUE | Flag that configures CPack to build an archive/package
+PAHO_BUILD_DEB_PACKAGE | FALSE (*nix only) | Flag that configures CPack to build a Debian/Ubuntu package
 PAHO_WITH_MQTT_C | FALSE | Whether to build the bundled Paho C library
 
 Enabling `PAHO_WITH_MQTT_C` builds and links in the Paho C library using compatible build options. If this is enabled, it passes the `PAHO_WITH_SSL` option to the C library, and also sets the options `PAHO_HIGH_PERFORMANCE` and `PAHO_WITH_UNIX_SOCKETS` for the C lib. These can be disabled in the cache before building if desired.
 
 In addition, the C++ build might commonly use `CMAKE_PREFIX_PATH` to help the build system find the location of the Paho C library if it was built separately.
+
+Setting `PAHO_ENABLE_CPACK` will configure CPack to create a ZIP file on Windows, or a TGZ tarball on *nix systems. If `PAHO_BUILD_DEB_PACKAGE` is set on *nix, it will configure for a .deb file instead of the tarball.
 
 ### Build the Paho C++ and Paho C libraries together
 

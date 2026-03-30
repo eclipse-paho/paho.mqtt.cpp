@@ -9,7 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 # Unreleased
 
 - Fixed doxygen warnings for missing params, etc, and for obsolete tags as of Doxygen v1.9.8
-
+- [#570](https://github.com/eclipse-paho/paho.mqtt.cpp/issues/570) Added PAHO_ENABLE_CPACK option for CMake to allow users to disable CPack configuration 
 
 # [Version 1.6.0](https://github.com/eclipse/paho.mqtt.cpp/compare/v1.5.3..v1.6.0) (2026-02-24)
 

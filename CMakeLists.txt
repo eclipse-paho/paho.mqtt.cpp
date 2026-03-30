@@ -44,6 +44,7 @@ option(PAHO_BUILD_EXAMPLES "Build sample/example programs" FALSE)
 option(PAHO_BUILD_TESTS "Build tests (requires Catch2)" FALSE)
 option(PAHO_BUILD_DOCUMENTATION "Create and install the API documentation (requires Doxygen)" FALSE)
 option(PAHO_WITH_MQTT_C "Build Paho C from the internal GIT submodule." FALSE)
+option(PAHO_ENABLE_CPACK "Enable CPack" TRUE)
 
 if(NOT PAHO_BUILD_SHARED AND NOT PAHO_BUILD_STATIC)
     message(FATAL_ERROR "You must set either PAHO_BUILD_SHARED, PAHO_BUILD_STATIC, or both")
@@ -156,18 +157,24 @@ install(
 
 ## --- Packaging settings ---
 
-if(WIN32)
-    set(CPACK_GENERATOR "ZIP")
-elseif(UNIX)
-    if(PAHO_BUILD_DEB_PACKAGE)
-        set(CPACK_GENERATOR "DEB")
-        include(cmake/CPackDebConfig.cmake)
-    else()
-        set(CPACK_GENERATOR "TGZ")
-	endif()
+if(PAHO_BUILD_DEB_PACKAGE)
+    set(PAHO_ENABLE_CPACK TRUE)
 endif()
 
-include(CPack)
+if(PAHO_ENABLE_CPACK)
+    if(WIN32)
+        set(CPACK_GENERATOR "ZIP")
+    elseif(UNIX)
+        if(PAHO_BUILD_DEB_PACKAGE)
+            set(CPACK_GENERATOR "DEB")
+            include(cmake/CPackDebConfig.cmake)
+        else()
+            set(CPACK_GENERATOR "TGZ")
+        endif()
+    endif()
+
+    include(CPack)
+endif()
 
 # --- Export CMake TARGETS ---
 
