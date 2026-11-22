@@ -22,6 +22,8 @@
 
 #define UNIT_TESTS
 
+#include <memory>
+
 #include "catch2_version.h"
 #include "mock_async_client.h"
 #include "mqtt/connect_options.h"
@@ -53,6 +55,10 @@ static constexpr token::Type TOKEN_TYPE = token::Type::CONNECT;
 
 static const std::string HTTP_PROXY{"http://localhost:80"};
 static const std::string HTTPS_PROXY{"https://localhost:443"};
+
+static const name_value_collection HTTP_HEADERS{
+    {"X-Header-One", "one"}, {"X-Header-Two", "two"}
+};
 
 // ----------------------------------------------------------------------
 // Test the default constructor
@@ -390,6 +396,86 @@ TEST_CASE("connect_options move_assignment", "[options]")
         );
 
         REQUIRE(copts.connectProperties == &opts.get_properties().c_struct());
+    }
+}
+
+// ----------------------------------------------------------------------
+// Test that copies and moves keep the C struct's HTTP headers pointing
+// at their own collection, not at the (possibly destroyed) source.
+// ----------------------------------------------------------------------
+
+static void check_http_headers(const connect_options& opts)
+{
+    const auto& c_struct = opts.c_struct();
+
+    REQUIRE(c_struct.httpHeaders == opts.get_http_headers().c_arr());
+
+    REQUIRE(0 == strcmp("X-Header-One", c_struct.httpHeaders[0].name));
+    REQUIRE(0 == strcmp("one", c_struct.httpHeaders[0].value));
+    REQUIRE(0 == strcmp("X-Header-Two", c_struct.httpHeaders[1].name));
+    REQUIRE(0 == strcmp("two", c_struct.httpHeaders[1].value));
+    REQUIRE(c_struct.httpHeaders[2].name == nullptr);
+}
+
+TEST_CASE("connect_options http_headers copy and move", "[options]")
+{
+    SECTION("copy ctor")
+    {
+        auto orgOpts = std::make_unique<connect_options>();
+        orgOpts->set_http_headers(HTTP_HEADERS);
+
+        connect_options opts{*orgOpts};
+        orgOpts.reset();
+
+        check_http_headers(opts);
+    }
+
+    SECTION("move ctor")
+    {
+        auto orgOpts = std::make_unique<connect_options>();
+        orgOpts->set_http_headers(HTTP_HEADERS);
+
+        connect_options opts{std::move(*orgOpts)};
+        orgOpts.reset();
+
+        check_http_headers(opts);
+    }
+
+    SECTION("copy assignment")
+    {
+        auto orgOpts = std::make_unique<connect_options>();
+        orgOpts->set_http_headers(HTTP_HEADERS);
+
+        connect_options opts;
+        opts = *orgOpts;
+        orgOpts.reset();
+
+        check_http_headers(opts);
+    }
+
+    SECTION("move assignment")
+    {
+        auto orgOpts = std::make_unique<connect_options>();
+        orgOpts->set_http_headers(HTTP_HEADERS);
+
+        connect_options opts;
+        opts = std::move(*orgOpts);
+        orgOpts.reset();
+
+        check_http_headers(opts);
+    }
+
+    SECTION("builder")
+    {
+        auto opts = connect_options_builder().http_headers(HTTP_HEADERS).finalize();
+        check_http_headers(opts);
+    }
+
+    SECTION("no headers")
+    {
+        connect_options orgOpts;
+        connect_options opts{orgOpts};
+        REQUIRE(opts.c_struct().httpHeaders == nullptr);
     }
 }
 

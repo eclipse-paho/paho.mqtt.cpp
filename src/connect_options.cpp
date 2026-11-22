@@ -141,8 +141,9 @@ void connect_options::update_c_struct()
     if (opts_.MQTTVersion >= MQTTVERSION_5)
         opts_.connectProperties = const_cast<MQTTProperties*>(&props_.c_struct());
 
-    // HTTP & Proxy
+    // HTTP Headers & Proxy
 
+    opts_.httpHeaders = httpHeaders_.empty() ? nullptr : httpHeaders_.c_arr();
     opts_.httpProxy = c_str(httpProxy_);
     opts_.httpsProxy = c_str(httpsProxy_);
 }
