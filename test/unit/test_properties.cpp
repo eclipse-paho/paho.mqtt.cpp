@@ -22,6 +22,7 @@
 
 #include <cstring>
 #include <iostream>
+#include <utility>
 
 #include "catch2_version.h"
 #include "mqtt/properties.h"
@@ -706,5 +707,110 @@ TEST_CASE("properties copy and move", "[properties]")
 
         REQUIRE(orgProps.empty());
         REQUIRE(0 == orgProps.size());
+    }
+}
+
+TEST_CASE("property copy assignment releases previous buffer", "[property]")
+{
+    property dst{
+        property::RESPONSE_TOPIC,
+        string(100, 'x')
+    };
+
+    property src{
+        property::RESPONSE_TOPIC,
+        "new value"
+    };
+
+    dst = src;
+
+    REQUIRE(get<string>(dst) == "new value");
+}
+
+TEST_CASE("property move assignment releases previous buffer", "[property]")
+{
+    property dst{
+        property::RESPONSE_TOPIC,
+        string(100, 'x')
+    };
+
+    property src{
+        property::RESPONSE_TOPIC,
+        "new value"
+    };
+
+    dst = std::move(src);
+
+    REQUIRE(get<string>(dst) == "new value");
+    REQUIRE(src.c_struct().identifier == 0);
+}
+
+TEST_CASE("property assignment handles different value types", "[property]")
+{
+    SECTION("copy string pair to integer")
+    {
+        property dst{
+            property::USER_PROPERTY, "key", "value"
+        };
+        property src{
+            property::MESSAGE_EXPIRY_INTERVAL, 42
+        };
+
+        dst = src;
+
+        REQUIRE(get<uint32_t>(dst) == 42);
+    }
+
+    SECTION("move binary to string pair")
+    {
+        property dst{
+            property::CORRELATION_DATA,
+            binary{"\x01\x02", 2}
+        };
+        property src{
+            property::USER_PROPERTY, "key", "new"
+        };
+
+        dst = std::move(src);
+
+        auto [name, value] = get<string_pair>(dst);
+        REQUIRE(name == "key");
+        REQUIRE(value == "new");
+        REQUIRE(src.c_struct().identifier == 0);
+    }
+
+    SECTION("self assignment")
+    {
+        property prop{
+            property::RESPONSE_TOPIC, "keep"
+        };
+
+        auto& same = prop;
+        prop = same;
+        prop = std::move(same);
+
+        REQUIRE(get<string>(prop) == "keep");
+    }
+
+    SECTION("copy assignment replaces string pair")
+    {
+        property dst{
+            property::USER_PROPERTY,
+            "old-key",
+            "old-value"
+        };
+
+        property src{
+            property::USER_PROPERTY,
+            "new-key",
+            "new-value"
+        };
+
+        dst = src;
+
+        auto [name, value] = get<string_pair>(dst);
+
+        REQUIRE(name == "new-key");
+        REQUIRE(value == "new-value");
     }
 }
