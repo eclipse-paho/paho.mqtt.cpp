@@ -15,6 +15,7 @@
  * Contributors:
  *    Frank Pagliughi - initial implementation and documentation
  *******************************************************************************/
+#include <utility>
 
 #include "mqtt/properties.h"
 
@@ -152,17 +153,18 @@ void property::copy(const MQTTProperty& cprop)
 
 property& property::operator=(const property& rhs)
 {
-    if (&rhs != this)
-        copy(rhs.prop_);
-
+    if (&rhs != this) {
+        property tmp{rhs};
+        std::swap(prop_, tmp.prop_);
+    }
     return *this;
 }
 
 property& property::operator=(property&& rhs)
 {
     if (&rhs != this) {
-        std::memcpy(&prop_, &rhs.prop_, sizeof(MQTTProperty));
-        memset(&rhs.prop_, 0, sizeof(MQTTProperty));
+        property tmp{std::move(rhs)};
+        std::swap(prop_, tmp.prop_);
     }
     return *this;
 }
