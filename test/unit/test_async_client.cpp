@@ -29,6 +29,9 @@
 #include "mqtt/async_client.h"
 #include "mqtt/iasync_client.h"
 
+#include <atomic>
+#include <future>
+
 using namespace mqtt;
 
 /////////////////////////////////////////////////////////////////////////////
@@ -123,6 +126,69 @@ TEST_CASE("async_client user constructor 3 args", "[client]")
 //----------------------------------------------------------------------
 // Test async_client::connect()
 //----------------------------------------------------------------------
+
+TEST_CASE("MQTT CONNECT notifies the action listener once", "[client][issue579]")
+{
+    struct connect_listener : callback, iaction_listener {
+        std::atomic<int> successes{0};
+        std::atomic<int> failures{0};
+        std::atomic<int> connections{0};
+        std::promise<void> initial_connection;
+        std::promise<void> reconnection;
+
+        void on_failure(const token&) override { ++failures; }
+        void on_success(const token&) override { ++successes; }
+
+        void connected(const std::string&) override {
+            const auto count = ++connections;
+            if (count == 1)
+                initial_connection.set_value();
+            else if (count == 2)
+                reconnection.set_value();
+        }
+    } listener, late_listener;
+
+    int version = MQTTVERSION_5;
+    bool register_callback = true;
+    SECTION("MQTT v5 with callback") {}
+    SECTION("MQTT v5 without callback") { register_callback = false; }
+    SECTION("MQTT v3.1.1 with callback") { version = MQTTVERSION_3_1_1; }
+
+    auto connected = listener.initial_connection.get_future();
+    auto reconnected = listener.reconnection.get_future();
+    async_client cli{
+        "tcp://127.0.0.1:1883", "test_connect_issue579", create_options{version}, nullptr
+    };
+    if (register_callback)
+        cli.set_callback(listener);
+
+    const auto timeout = std::chrono::seconds{5};
+    auto opts = version == MQTTVERSION_5
+                    ? connect_options_builder::v5().clean_start(true).finalize()
+                    : connect_options_builder().mqtt_version(version).clean_session(true).finalize();
+    auto tok = cli.connect(opts, nullptr, listener);
+    REQUIRE(tok->wait_for(timeout));
+    if (register_callback)
+        REQUIRE(connected.wait_for(timeout) == std::future_status::ready);
+    REQUIRE(cli.disconnect()->wait_for(timeout));
+    CHECK(listener.successes.load() == 1);
+    CHECK(listener.failures.load() == 0);
+    CHECK(listener.connections.load() == (register_callback ? 1 : 0));
+    CHECK(tok->get_connect_response().get_mqtt_version() == version);
+
+    if (register_callback) {
+        auto reconnect_tok = cli.reconnect();
+        REQUIRE(reconnect_tok->wait_for(timeout));
+        REQUIRE(reconnected.wait_for(timeout) == std::future_status::ready);
+        REQUIRE(cli.disconnect()->wait_for(timeout));
+        CHECK(listener.successes.load() == 2);
+        CHECK(listener.failures.load() == 0);
+        CHECK(listener.connections.load() == 2);
+    }
+
+    tok->set_action_callback(late_listener);
+    CHECK(late_listener.successes.load() == 1);
+}
 
 TEST_CASE("async_client connect 0 arg", "[client]")
 {
