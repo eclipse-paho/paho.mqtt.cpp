@@ -111,6 +111,10 @@ void token::on_failure5(void* context, MQTTAsync_failureData5* rsp)
 void token::on_success(MQTTAsync_successData* rsp)
 {
     unique_lock g(lock_);
+    // The connected callback can follow a CONNECT response that completed this token.
+    if (!rsp && complete_)
+        return;
+
     iaction_listener* listener = listener_;
 
     if (rsp) {
